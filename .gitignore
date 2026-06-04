@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.local
+.env.*
+artifacts
+cache
+typechain-types
+coverage
+coverage.json
+.next/
+out/
+build/
+dist/
