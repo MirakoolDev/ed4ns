@@ -71,6 +71,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const [resolvedArtwork, setResolvedArtwork] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activePlayers, setActivePlayers] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [gridExpanded, setGridExpanded] = useState(false);
   const [claimedSet, setClaimedSet] = useState<Set<number>>(new Set());
   const [openseaSlug, setOpenseaSlug] = useState("");
@@ -360,6 +361,11 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       : filter === "mine"
       ? allTokensWithStatus.filter((t) => myTokenIds.has(t.id))
       : allTokensWithStatus.filter((t) => t.status === filter);
+
+  if (searchQuery.trim()) {
+    const q = searchQuery.trim();
+    filtered = filtered.filter(t => t.id.toString() === q);
+  }
 
   if (filter === "mine") {
     // Sort mine: alive/winners first, then by token ID
@@ -851,6 +857,22 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               {filtered.length} token{filtered.length !== 1 ? "s" : ""}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <input
+                type="text"
+                placeholder="Search Token ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input"
+                style={{
+                  width: "140px",
+                  fontSize: "10px",
+                  padding: "4px 8px",
+                  background: "transparent",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-mono)"
+                }}
+              />
               <div className="filter-tabs">
                 {["all", "alive", "eliminated", "winner", "mine"].map((f) => (
                   <button
