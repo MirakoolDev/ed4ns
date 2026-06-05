@@ -157,9 +157,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     ? Number(formatEther((mintPrice as bigint) * BigInt(qty))).toString()
     : (0.01 * qty).toString();
 
-  // Simulated recent mints for demo
-  const recentMints: MintEvent[] = [];
-
   return (
     <div className="page-root">
       {/* Breadcrumb */}
@@ -194,7 +191,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         <div className="stat-cell">
           <span className="stat-label">Prize Pool</span>
           <span className="stat-value">
-            {prizePool ? Number(formatEther(prizePool as bigint)).toFixed(3) : "0.000"}
+            {prizePool ? Number(formatEther(prizePool as bigint)).toFixed(5) : "0.00000"}
           </span>
           <span className="stat-unit">ETH on Base</span>
         </div>
@@ -410,51 +407,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             </div>
           </div>
 
-          {/* Recent mints table */}
-          <div className="mint-panel-section" style={{ flex: 1, overflow: "auto" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--text-muted)",
-                marginBottom: 12,
-              }}
-            >
-              Recent Mints
-            </div>
-            {recentMints.length === 0 ? (
-              <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 10, textAlign: "center", padding: "24px 0" }}>
-                No mints yet
-              </div>
-            ) : (
-              <table className="recent-table">
-                <thead>
-                  <tr>
-                    <th>Address</th>
-                    <th>Qty</th>
-                    <th>Block</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentMints.map((m, i) => (
-                    <tr key={i}>
-                      <td>
-                        <span className="recent-addr">
-                          <a href={getExplorerUrl(m.address, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
-                            {m.address.slice(0, 6)}…{m.address.slice(-4)}
-                          </a>
-                        </span>
-                      </td>
-                      <td>{m.qty}×</td>
-                      <td>{m.blockAgo} blocks ago</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
         </div>
       </div>
 
