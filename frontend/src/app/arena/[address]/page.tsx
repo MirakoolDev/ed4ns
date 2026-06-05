@@ -151,6 +151,18 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     query: { refetchInterval: 4000 },
   });
 
+  const { data: mintCloseTime } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "mintCloseTime",
+  });
+
+  // True only when the mint window has actually ended (not just "never opened")
+  const mintActuallyClosed =
+    mintCloseTime !== undefined &&
+    mintCloseTime > 0n &&
+    BigInt(Math.floor(Date.now() / 1000)) > mintCloseTime;
+
   const { data: cutPending } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
@@ -802,7 +814,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         )}
 
         {/* Artist init panel */}
-        {isArtist && !mintingOpen && !gameInitialized && (
+        {isArtist && !mintingOpen && !gameInitialized && mintActuallyClosed && (
           <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
             <div
               style={{
