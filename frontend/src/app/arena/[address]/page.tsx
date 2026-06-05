@@ -476,7 +476,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     const checkClaimed = async () => {
       try {
         const myWinnerIds = Array.from(myTokenIds).filter(id => 
-          statusMap[id] === "alive" || statusMap[id] === "winner" || statusMap[id] === "claimed"
+          statusMap[id] === "alive"
         );
         if (myWinnerIds.length === 0) return;
         
