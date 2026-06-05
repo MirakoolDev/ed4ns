@@ -23,7 +23,7 @@ const baseRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_KEY
 
 const config = getDefaultConfig({
   appName: "ed4ns",
-  projectId: "43763f03b0d2bc4a5b481ad1240c5f43", 
+  projectId: "ce61f970339dca4ac67edebd251bda73", 
   chains: [base],
   transports: {
     [base.id]: http(baseRpcUrl, { batch: true }),
