@@ -13,6 +13,7 @@ import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
 import { getExplorerUrl } from "@/config";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 const resolveGatewayUrl = (url: string): string => {
   if (!url) return "";
@@ -35,6 +36,7 @@ interface MintEvent {
 export default function Page({ params }: { params: Promise<{ address: string }> }) {
   const { address: NFT_ADDRESS } = use(params);
   const { address: userAddress } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const chainId = useChainId();
   const [qty, setQty] = useState(1);
   const [isMinting, setIsMinting] = useState(false);
@@ -348,8 +350,8 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             <button
               className="btn btn-primary btn-large"
               style={{ width: "100%", marginTop: 16 }}
-              onClick={handleMint}
-              disabled={!userAddress || !isOpen || isMinting || isMiningMint}
+              onClick={!userAddress ? openConnectModal : handleMint}
+              disabled={!!userAddress && (!isOpen || isMinting || isMiningMint)}
             >
               {!userAddress
                 ? "Connect Wallet"
