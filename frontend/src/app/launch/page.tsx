@@ -300,7 +300,7 @@ export default function LaunchPage() {
             maxWidth: 440,
           }}
         >
-          Open edition survival games on-chain. Mint. Compete. The final 4 split the prize pool.
+          Open Edition Arenas on-chain. Mint. Compete. The final 4 split the prize pool.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 8 }}>
           <Link href="/" className="btn btn-primary btn-large">

@@ -57,8 +57,8 @@ const FAQ = [
     a: "Token status follows the token, not the address. The new holder of a surviving token can claim the prize. The new holder of an eliminated token holds a collectible with no prize claim.",
   },
   {
-    q: "How is the prize pool protected?",
-    a: "ETH is held in the contract. Only the artist can call emergencyWithdraw after the game finishes, and only for any residual dust. Actual prizes are claimable by token holders directly.",
+    q: "Is the prize pool safe?",
+    a: "Yes! All ETH is securely locked inside the smart contract. The prize distribution is fully automated, so winners can claim their share directly from the contract the moment the edition ends.",
   },
   {
     q: "Is there a deadline to claim?",
@@ -102,7 +102,7 @@ export default function HowToPlayPage() {
               textTransform: "uppercase",
             }}
           >
-            ed4ns — Open Edition Survival Game
+            ed4ns — Open Edition Arena
           </p>
         </div>
 
