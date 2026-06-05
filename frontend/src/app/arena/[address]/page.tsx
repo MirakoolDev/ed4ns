@@ -567,7 +567,16 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   }, [isCutMined, isCutError]);
 
   useEffect(() => {
-    if (isRevealMined) { addToast("Round results revealed!", "success"); setIsSubmittingReveal(false); setRevealTxHash(undefined); }
+    if (isRevealMined) {
+      addToast("Round results revealed!", "success");
+      setIsSubmittingReveal(false);
+      setRevealTxHash(undefined);
+      fetch("/api/refresh-blockscout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: NFT_ADDRESS, chainId })
+      }).catch(console.error);
+    }
     if (isRevealError) { addToast("Reveal failed.", "error"); setIsSubmittingReveal(false); setRevealTxHash(undefined); }
   }, [isRevealMined, isRevealError]);
 

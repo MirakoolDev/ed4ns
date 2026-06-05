@@ -201,18 +201,18 @@ export default function LaunchPage() {
   const canCreate = !!userAddress && userAddress.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
 
   // ── Deploy form state ────────────────────────────────────────────────────
-  const defaultOpen  = fromUnix(now() + 300);
+  const defaultOpen = fromUnix(now() + 300);
   const defaultClose = fromUnix(now() + 86400);
 
   const [form, setForm] = useState({
-    name:          "",
-    symbol:        "",
-    description:   "",
-    mintPrice:     "0.01",
-    mintOpenTime:  defaultOpen,
+    name: "",
+    symbol: "",
+    description: "",
+    mintPrice: "0.01",
+    mintOpenTime: defaultOpen,
     mintCloseTime: defaultClose,
     minCutInterval: "240",
-    artworkUri:    "",
+    artworkUri: "",
   });
 
   const setField = (k: keyof typeof form) => (v: string) =>

@@ -127,6 +127,13 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       setIsMinting(false);
       setMintTxHash(undefined);
       refetchSupply();
+
+      // Silently force blockscout to refresh the collection metadata
+      fetch("/api/refresh-blockscout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: NFT_ADDRESS, chainId })
+      }).catch(console.error);
     }
   }, [isMintDone]);
 
