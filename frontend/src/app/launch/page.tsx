@@ -201,18 +201,18 @@ export default function LaunchPage() {
   const canCreate = !!userAddress && userAddress.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
 
   // ── Deploy form state ────────────────────────────────────────────────────
-  const defaultOpen = fromUnix(now() + 300);
+  const defaultOpen  = fromUnix(now() + 300);
   const defaultClose = fromUnix(now() + 86400);
 
   const [form, setForm] = useState({
-    name: "",
-    symbol: "",
-    description: "",
-    mintPrice: "0.01",
-    mintOpenTime: defaultOpen,
+    name:          "",
+    symbol:        "",
+    description:   "",
+    mintPrice:     "0.01",
+    mintOpenTime:  defaultOpen,
     mintCloseTime: defaultClose,
     minCutInterval: "240",
-    artworkUri: "",
+    artworkUri:    "",
   });
 
   const setField = (k: keyof typeof form) => (v: string) =>
@@ -300,7 +300,7 @@ export default function LaunchPage() {
             maxWidth: 440,
           }}
         >
-          Open Edition Arenas on-chain. Mint. Compete. The final 4 split the prize pool.
+          Open edition survival games on-chain. Mint. Compete. The final 4 split the prize pool.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 8 }}>
           <Link href="/" className="btn btn-primary btn-large">

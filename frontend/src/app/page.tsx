@@ -203,7 +203,7 @@ export default function HomeGallery() {
           ed4ns Explorer
         </h1>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-secondary)", marginTop: 8 }}>
-          {games.length} active arenas deployed
+          {games.length} active survival games deployed
         </p>
       </div>
 

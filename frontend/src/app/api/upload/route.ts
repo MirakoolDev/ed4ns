@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
 
     // Standard IPFS URI format
     const ipfsUrl = `ipfs://${cid}`;
-
+    
     // Dedicated 4everland IPFS gateway URL (fastest and most reliable since they host it)
     const gatewayUrl = `https://${cid}.ipfs.4everland.io/`;
 

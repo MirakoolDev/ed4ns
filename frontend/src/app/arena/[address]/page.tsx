@@ -71,7 +71,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const [resolvedArtwork, setResolvedArtwork] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activePlayers, setActivePlayers] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [gridExpanded, setGridExpanded] = useState(false);
   const [claimedSet, setClaimedSet] = useState<Set<number>>(new Set());
   const [openseaSlug, setOpenseaSlug] = useState("");
@@ -151,18 +150,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     functionName: "mintingOpen",
     query: { refetchInterval: 4000 },
   });
-
-  const { data: mintCloseTime } = useReadContract({
-    address: NFT_ADDRESS,
-    abi: NFT_ABI,
-    functionName: "mintCloseTime",
-  });
-
-  // True only when the mint window has actually ended (not just "never opened")
-  const mintActuallyClosed =
-    mintCloseTime !== undefined &&
-    mintCloseTime > 0n &&
-    BigInt(Math.floor(Date.now() / 1000)) > mintCloseTime;
 
   const { data: cutPending } = useReadContract({
     address: NFT_ADDRESS,
@@ -361,11 +348,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       : filter === "mine"
       ? allTokensWithStatus.filter((t) => myTokenIds.has(t.id))
       : allTokensWithStatus.filter((t) => t.status === filter);
-
-  if (searchQuery.trim()) {
-    const q = searchQuery.trim();
-    filtered = filtered.filter(t => t.id.toString() === q);
-  }
 
   if (filter === "mine") {
     // Sort mine: alive/winners first, then by token ID
@@ -571,13 +553,19 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       addToast("Round results revealed!", "success");
       setIsSubmittingReveal(false);
       setRevealTxHash(undefined);
-      fetch("/api/refresh-blockscout", {
+      
+      const aliveTokens = allTokensWithStatus
+        .filter(t => t.status === "alive")
+        .map(t => t.id);
+
+      fetch("/api/refresh-opensea", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: NFT_ADDRESS, chainId })
+        body: JSON.stringify({ address: NFT_ADDRESS, chainId, tokenIds: aliveTokens })
       }).catch(console.error);
     }
     if (isRevealError) { addToast("Reveal failed.", "error"); setIsSubmittingReveal(false); setRevealTxHash(undefined); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealMined, isRevealError]);
 
   const handleTriggerCut = async () => {
@@ -829,7 +817,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         )}
 
         {/* Artist init panel */}
-        {isArtist && !mintingOpen && !gameInitialized && mintActuallyClosed && (
+        {isArtist && !mintingOpen && !gameInitialized && (
           <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
             <div
               style={{
@@ -866,22 +854,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               {filtered.length} token{filtered.length !== 1 ? "s" : ""}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <input
-                type="text"
-                placeholder="Search Token ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="input"
-                style={{
-                  width: "140px",
-                  fontSize: "10px",
-                  padding: "4px 8px",
-                  background: "transparent",
-                  border: "1px solid var(--border)",
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--font-mono)"
-                }}
-              />
               <div className="filter-tabs">
                 {["all", "alive", "eliminated", "winner", "mine"].map((f) => (
                   <button
