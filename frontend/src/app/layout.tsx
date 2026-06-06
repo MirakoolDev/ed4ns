@@ -13,9 +13,12 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ed4ns — Open Edition Arena",
+  title: "ed4ns — Survival Game",
   description:
-    "An open-edition NFT arena. Mint a token. Cuts happen every round. The final 4 share the prize pool.",
+    "An open-edition NFT survival game. Mint a token. Cuts happen every round. The final 4 share the prize pool.",
+  other: {
+    "base:app_id": "6a238e9711cac27e581f114e",
+  },
 };
 
 export default function RootLayout({
