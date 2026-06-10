@@ -701,8 +701,8 @@ export default function LaunchPage() {
           <div className="sidebar-row">
             <span className="sidebar-label">Factory</span>
             <span className="sidebar-value" style={{ fontSize: 9 }}>
-              <a href={getExplorerUrl(FACTORY_ADDRESS, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
-                {FACTORY_ADDRESS.slice(0, 8)}…{FACTORY_ADDRESS.slice(-6)}
+              <a href={getExplorerUrl(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
+                {(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2).slice(0, 8)}…{(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2).slice(-6)}
               </a>
             </span>
           </div>
