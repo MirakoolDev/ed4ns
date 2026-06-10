@@ -4,9 +4,20 @@ import { useState, useRef, useCallback } from "react";
 import { useAccount, useChainId, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseEther, formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS, AUTHORIZED_CREATOR, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, AUTHORIZED_CREATOR, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { GameCard } from "../page";
+
+// Robust JSON string escape helper to prevent ANY on-chain metadata breakage
+const escapeForJson = (str: string) => {
+  if (!str) return "";
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t');
+};
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const toUnix = (localDateTime: string) =>
@@ -146,6 +157,8 @@ function ArtworkUploader({
         }}
       />
 
+
+
       {error && (
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--red)", letterSpacing: "0.1em" }}>
           {error}
@@ -175,6 +188,7 @@ export default function LaunchPage() {
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
+  const [factoryVersion, setFactoryVersion] = useState<"V1" | "V2">("V2");
 
   const addToast = (msg: string, type = "info") => {
     const id = Date.now() + Math.random();
@@ -184,14 +198,14 @@ export default function LaunchPage() {
 
   // ── Factory reads ────────────────────────────────────────────────────────
   const { data: gameCount } = useReadContract({
-    address: FACTORY_ADDRESS as `0x${string}`,
+    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "gameCount",
     query: { refetchInterval: 15000 },
   });
 
   const { data: games } = useReadContract({
-    address: FACTORY_ADDRESS as `0x${string}`,
+    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "getGames",
     query: { refetchInterval: 15000 },
@@ -234,13 +248,13 @@ export default function LaunchPage() {
       addToast("Deploying game…", "info");
 
       const hash = await writeContractAsync({
-        address: FACTORY_ADDRESS as `0x${string}`,
+        address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
         abi: FACTORY_ABI,
         functionName: "deployGame",
         args: [{
-          name: form.name,
+          name: escapeForJson(form.name),
           symbol: form.symbol,
-          description: form.description,
+          description: escapeForJson(form.description),
           artworkURI: form.artworkUri,
           mintPrice: parseEther(form.mintPrice),
           mintOpenTime: BigInt(toUnix(form.mintOpenTime)),

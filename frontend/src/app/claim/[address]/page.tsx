@@ -7,6 +7,7 @@ import {
   useReadContracts,
   useWriteContract,
   useChainId,
+  usePublicClient,
 } from "wagmi";
 import { formatEther } from "viem";
 import Link from "next/link";
@@ -29,6 +30,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
   const [manualTokenId, setManualTokenId] = useState("");
   const [isManualLoading, setIsManualLoading] = useState(false);
+  const publicClient = usePublicClient();
 
   const addToast = (msg: string, type = "info") => {
     const id = Date.now() + Math.random();
@@ -148,7 +150,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     args: [BigInt(id)],
   }));
 
-  const { data: ownerResults, isLoading: isOwnersLoading } = useReadContracts({
+  const { data: ownerResults, isLoading: isOwnersLoading, refetch: refetchOwners } = useReadContracts({
     contracts: ownerContracts,
     query: { enabled: winnerTokenIds.length > 0 && !!userAddress, staleTime: 30000 },
   });
@@ -179,7 +181,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     });
   });
 
-  const { data: stateResults, isLoading: isStateLoading } = useReadContracts({
+  const { data: stateResults, isLoading: isStateLoading, refetch: refetchState } = useReadContracts({
     contracts: stateContracts,
     query: { enabled: ownedTokenIds.length > 0 },
   });
@@ -205,6 +207,12 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         functionName: "claimPrize",
         args: [BigInt(tokenId)],
       });
+      addToast(`Tx broadcasted: ${hash.slice(0, 10)}…`, "info");
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash });
+        refetchState();
+        refetchOwners();
+      }
       addToast(`Claimed! tx: ${hash.slice(0, 10)}…`, "success");
     } catch (e: any) {
       addToast(e.shortMessage || "Claim failed", "error");
@@ -223,6 +231,12 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         functionName: "claimPrize",
         args: [BigInt(Number(manualTokenId))],
       });
+      addToast(`Tx broadcasted: ${hash.slice(0, 10)}…`, "info");
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash });
+        refetchState();
+        refetchOwners();
+      }
       addToast(`Claimed! tx: ${hash.slice(0, 10)}…`, "success");
       setManualTokenId("");
     } catch (e: any) {

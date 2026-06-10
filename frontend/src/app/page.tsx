@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import { formatEther } from "viem";
-import { FACTORY_ADDRESS, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -28,7 +28,7 @@ const resolveGatewayUrl = (url: string): string => {
   return url;
 };
 
-export function GameCard({ address }: { address: string }) {
+export function GameCard({ address, version }: { address: string; version: string }) {
   const [, setTick] = useState(0);
   const [artworkUrl, setArtworkUrl] = useState("");
   const chainId = useChainId();
@@ -91,6 +91,23 @@ export function GameCard({ address }: { address: string }) {
     >
       {/* Artwork */}
       <div style={{ aspectRatio: "1", background: "var(--bg-card-2)", overflow: "hidden", position: "relative" }}>
+        {/* Version Badge */}
+        <div style={{
+          position: "absolute",
+          top: 8,
+          left: 8,
+          background: "rgba(0,0,0,0.6)",
+          color: "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          zIndex: 10,
+          backdropFilter: "blur(4px)",
+        }}>
+          {version}
+        </div>
         {artworkUrl ? (
           <img
             src={artworkUrl}
@@ -188,13 +205,25 @@ export function GameCard({ address }: { address: string }) {
 }
 
 export default function HomeGallery() {
-  const { data: gamesData } = useReadContract({
+  const { data: gamesDataV1 } = useReadContract({
     address: FACTORY_ADDRESS as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "getGames",
   });
 
-  const games = (gamesData as string[]) || [];
+  const { data: gamesDataV2 } = useReadContract({
+    address: FACTORY_ADDRESS_V2 ? (FACTORY_ADDRESS_V2 as `0x${string}`) : undefined,
+    abi: FACTORY_ABI,
+    functionName: "getGames",
+  });
+
+  const gamesV1 = (gamesDataV1 as string[]) || [];
+  const gamesV2 = (gamesDataV2 as string[]) || [];
+
+  const allGames = [
+    ...gamesV1.map(addr => ({ address: addr, version: "V1" })),
+    ...gamesV2.map(addr => ({ address: addr, version: "V2" }))
+  ];
 
   return (
     <div className="page-root" style={{ padding: "64px 40px" }}>
@@ -203,7 +232,7 @@ export default function HomeGallery() {
           ed4ns Explorer
         </h1>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-secondary)", marginTop: 8 }}>
-          {games.length} active survival games deployed
+          {allGames.length} active survival games deployed
         </p>
       </div>
 
@@ -214,12 +243,12 @@ export default function HomeGallery() {
         maxWidth: 1200,
         margin: "0 auto"
       }}>
-        {games.length === 0 ? (
+        {allGames.length === 0 ? (
           <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "64px 0", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase" }}>
             No games found
           </div>
         ) : (
-          [...games].reverse().map((g) => <GameCard key={g} address={g} />)
+          allGames.map((g, i) => <GameCard key={i} address={g.address} version={g.version} />)
         )}
       </div>
     </div>
