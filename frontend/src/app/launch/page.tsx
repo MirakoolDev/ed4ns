@@ -395,7 +395,7 @@ export default function LaunchPage() {
           ) : (
             <div className="nft-grid">
               {[...gameList].reverse().map((addr) => (
-                <GameCard key={addr} address={addr} />
+                <GameCard key={addr} address={addr} version={factoryVersion} />
               ))}
             </div>
           )}
