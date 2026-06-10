@@ -859,10 +859,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               className="btn btn-primary btn-large"
               style={{ width: "100%" }}
               onClick={handleInitGame}
-              disabled={
+              disabled={Boolean(
                 (mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime)) ||
                 (mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10)
-              }
+              )}
             >
               Initialize Arena
             </button>
