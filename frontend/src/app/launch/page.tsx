@@ -418,6 +418,24 @@ export default function LaunchPage() {
                 Deploy a Game
               </div>
 
+              {/* Version Selector */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <button 
+                  className={`btn ${factoryVersion === "V1" ? "btn-primary" : "btn-outline"}`} 
+                  onClick={() => setFactoryVersion("V1")} 
+                  style={{ flex: 1 }}
+                >
+                  V1 (Legacy)
+                </button>
+                <button 
+                  className={`btn ${factoryVersion === "V2" ? "btn-primary" : "btn-outline"}`} 
+                  onClick={() => setFactoryVersion("V2")} 
+                  style={{ flex: 1 }}
+                >
+                  V2 (SeaDrop)
+                </button>
+              </div>
+
               <form onSubmit={handleDeploy} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {/* Artwork uploader */}
                 <ArtworkUploader
