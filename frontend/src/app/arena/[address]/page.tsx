@@ -151,6 +151,18 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     query: { refetchInterval: 4000 },
   });
 
+  const { data: mintOpenTime } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "mintOpenTime",
+  });
+
+  const { data: mintCloseTime } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "mintCloseTime",
+  });
+
   const { data: cutPending } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
@@ -817,7 +829,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         )}
 
         {/* Artist init panel */}
-        {isArtist && !mintingOpen && !gameInitialized && (
+        {isArtist && !gameInitialized && (
           <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
             <div
               style={{
@@ -830,13 +842,27 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             >
               Init Game (Artist)
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Mint has closed. Initialize the arena to begin elimination rounds.
-            </p>
+            {mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime) ? (
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Minting has not started yet. Game cannot be initialized.
+              </p>
+            ) : mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10 ? (
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Minting is currently open. You can initialize the arena early once 10 tokens are minted.
+              </p>
+            ) : (
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Mint has closed or early initialization is unlocked. Initialize the arena to begin elimination rounds.
+              </p>
+            )}
             <button
               className="btn btn-primary btn-large"
               style={{ width: "100%" }}
               onClick={handleInitGame}
+              disabled={
+                (mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime)) ||
+                (mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10)
+              }
             >
               Initialize Arena
             </button>
