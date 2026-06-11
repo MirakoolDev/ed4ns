@@ -77,9 +77,24 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const [editingSlug, setEditingSlug] = useState(false);
 
   useEffect(() => {
-    const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`);
-    if (slug) setOpenseaSlug(slug);
-  }, [NFT_ADDRESS]);
+    if (typeof window !== "undefined") {
+      const slug = localStorage.getItem(`os_slug_${NFT_ADDRESS}`);
+      if (slug) setOpenseaSlug(slug);
+    }
+    
+    // Auto-fetch from OpenSea API to sync for all users
+    fetch(`/api/opensea-slug?address=${NFT_ADDRESS}&chainId=${chainId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.slug) {
+          setOpenseaSlug(data.slug);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`os_slug_${NFT_ADDRESS}`, data.slug);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [NFT_ADDRESS, chainId]);
 
   const saveSlug = (val: string) => {
     setOpenseaSlug(val);
