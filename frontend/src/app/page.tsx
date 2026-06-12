@@ -226,31 +226,121 @@ export default function HomeGallery() {
   ];
 
   return (
-    <div className="page-root" style={{ padding: "64px 40px" }}>
-      <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 32, letterSpacing: "-0.04em", fontWeight: 700 }}>
-          ed4ns Explorer
-        </h1>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-secondary)", marginTop: 8 }}>
-          {allGames.length} active survival games deployed
-        </p>
-      </div>
+    <div className="page-root">
+      {/* ── Hero Section ── */}
+      <section className="hero-section">
+        <div className="hero-inner">
+          <div className="hero-eyebrow">On-Chain Survival Game</div>
+          <h1 className="hero-title">ed4ns</h1>
+          <p className="hero-subtitle">
+            An open-edition NFT survival game built on Base.
+            Mint a token. Cuts happen every round. The final 4 share the prize pool.
+            Fully on-chain. No backend. No trust required.
+          </p>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: 16,
-        maxWidth: 1200,
-        margin: "0 auto"
-      }}>
-        {allGames.length === 0 ? (
-          <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "64px 0", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase" }}>
-            No games found
+          <div className="hero-steps">
+            <div className="hero-step">
+              <div className="hero-step-num">01</div>
+              <div className="hero-step-label">Mint</div>
+              <div className="hero-step-desc">Mint during the open edition window. Your ETH funds the prize pool.</div>
+            </div>
+            <div className="hero-step-divider" />
+            <div className="hero-step">
+              <div className="hero-step-num">02</div>
+              <div className="hero-step-label">Survive</div>
+              <div className="hero-step-desc">Each round, ~half the tokens are eliminated using on-chain randomness.</div>
+            </div>
+            <div className="hero-step-divider" />
+            <div className="hero-step">
+              <div className="hero-step-num">03</div>
+              <div className="hero-step-label">Win</div>
+              <div className="hero-step-desc">The last 4 survivors split the entire prize pool. Claim directly on-chain.</div>
+            </div>
           </div>
-        ) : (
-          allGames.map((g, i) => <GameCard key={i} address={g.address} version={g.version} />)
-        )}
-      </div>
+
+          <div className="hero-actions">
+            <Link href="/how-to-play" className="btn btn-primary btn-large">How It Works</Link>
+            <a href="https://github.com/MirakoolDev/ed4ns" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-large">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              Source Code
+            </a>
+          </div>
+
+          <div className="hero-trust">
+            <div className="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Verified on Basescan
+            </div>
+            <div className="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              Open Source
+            </div>
+            <div className="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Fully On-Chain
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Explorer Section ── */}
+      <section style={{ borderTop: "1px solid var(--border)" }}>
+        <div style={{ padding: "32px 40px" }}>
+          <div style={{ marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-primary)" }}>
+                Active Games
+              </h2>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", marginTop: 4, letterSpacing: "0.08em" }}>
+                {allGames.length} survival game{allGames.length !== 1 ? "s" : ""} deployed
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 16,
+            maxWidth: 1200,
+            margin: "0 auto"
+          }}>
+            {allGames.length === 0 ? (
+              <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "64px 0", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase" }}>
+                No games found — deploy one from the Launch page
+              </div>
+            ) : (
+              allGames.map((g, i) => <GameCard key={i} address={g.address} version={g.version} />)
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <span className="footer-logo">ed4ns</span>
+            <span className="footer-tagline">On-chain NFT survival game on Base</span>
+          </div>
+          <div className="footer-links">
+            <a href="https://x.com/MiracleOtugo" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              Twitter
+            </a>
+            <a href="https://miracleotugo.art" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              Website
+            </a>
+            <a href="https://github.com/MirakoolDev/ed4ns" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              GitHub
+            </a>
+          </div>
+          <div className="footer-copy">
+            Built by <a href="https://miracleotugo.art" target="_blank" rel="noopener noreferrer">Miracle Otugo</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
