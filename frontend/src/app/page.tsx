@@ -211,14 +211,18 @@ export default function HomeGallery() {
     functionName: "getGames",
   });
 
-  const { data: gamesDataV2 } = useReadContract({
-    address: FACTORY_ADDRESS_V2 ? (FACTORY_ADDRESS_V2 as `0x${string}`) : undefined,
-    abi: FACTORY_ABI,
-    functionName: "getGames",
+  const { data: gamesDataV2 } = useReadContracts({
+    contracts: FACTORY_ADDRESS_V2.map((addr) => ({
+      address: addr,
+      abi: FACTORY_ABI,
+      functionName: "getGames",
+    })),
   });
 
   const gamesV1 = (gamesDataV1 as string[]) || [];
-  const gamesV2 = (gamesDataV2 as string[]) || [];
+  const gamesV2 = gamesDataV2 
+    ? gamesDataV2.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
+    : [];
 
   const allGames = [
     ...gamesV1.map(addr => ({ address: addr, version: "V1" })),

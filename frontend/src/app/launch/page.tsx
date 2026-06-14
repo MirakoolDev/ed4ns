@@ -196,16 +196,18 @@ export default function LaunchPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 5000);
   };
 
+  const currentFactoryV2 = Array.isArray(FACTORY_ADDRESS_V2) ? FACTORY_ADDRESS_V2[FACTORY_ADDRESS_V2.length - 1] : FACTORY_ADDRESS_V2;
+
   // ── Factory reads ────────────────────────────────────────────────────────
   const { data: gameCount } = useReadContract({
-    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
+    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "gameCount",
     query: { refetchInterval: 15000 },
   });
 
   const { data: games } = useReadContract({
-    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
+    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "getGames",
     query: { refetchInterval: 15000 },
@@ -248,7 +250,7 @@ export default function LaunchPage() {
       addToast("Deploying game…", "info");
 
       const hash = await writeContractAsync({
-        address: (factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2) as `0x${string}`,
+        address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
         abi: FACTORY_ABI,
         functionName: "deployGame",
         args: [{
@@ -701,8 +703,8 @@ export default function LaunchPage() {
           <div className="sidebar-row">
             <span className="sidebar-label">Factory</span>
             <span className="sidebar-value" style={{ fontSize: 9 }}>
-              <a href={getExplorerUrl(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
-                {(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2).slice(0, 8)}…{(factoryVersion === "V1" ? FACTORY_ADDRESS : FACTORY_ADDRESS_V2).slice(-6)}
+              <a href={getExplorerUrl(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
+                {(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2).slice(0, 8)}…{(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2).slice(-6)}
               </a>
             </span>
           </div>
