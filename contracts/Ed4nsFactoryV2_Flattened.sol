@@ -132,7 +132,6 @@ interface IERC721 is IERC165 {
     /**
      * @dev Transfers `tokenId` token from `from` to `to`.
      *
-     * WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC721
      * or else they may be permanently lost. Usage of {safeTransferFrom} prevents loss, though the caller must
      * understand this adds an external call which potentially creates a reentrancy vulnerability.
      *
@@ -727,8 +726,8 @@ library Math {
         // `msb(a) <= a < 2*msb(a)`. This value can be written `msb(a)=2**k` with `k=log2(a)`.
         //
         // This can be rewritten `2**log2(a) <= a < 2**(log2(a) + 1)`
-        // ΓåÆ `sqrt(2**k) <= sqrt(a) < sqrt(2**(k+1))`
-        // ΓåÆ `2**(k/2) <= sqrt(a) < 2**((k+1)/2) <= 2**(k/2 + 1)`
+        // → `sqrt(2**k) <= sqrt(a) < sqrt(2**(k+1))`
+        // → `2**(k/2) <= sqrt(a) < 2**((k+1)/2) <= 2**(k/2 + 1)`
         //
         // Consequently, `2**(log2(a) / 2)` is a good first approximation of `sqrt(a)` with at least 1 correct bit.
         uint256 result = 1 << (log2(a) >> 1);
@@ -1294,7 +1293,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev Mints `tokenId` and transfers it to `to`.
      *
-     * WARNING: Usage of this method is discouraged, use {_safeMint} whenever possible
      *
      * Requirements:
      *
@@ -1497,7 +1495,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     /**
      * @dev Unsafe write access to the balances, used by extensions that "mint" tokens using an {ownerOf} override.
      *
-     * WARNING: Anyone calling this MUST ensure that the balances remain consistent with the ownership. The invariant
      * being that for any address `a` the value returned by `balanceOf(a)` must be equal to the number of tokens such
      * that `ownerOf(tokenId)` is `a`.
      */
@@ -2854,10 +2851,10 @@ interface ISeaDrop is SeaDropErrorsAndEvents {
 pragma solidity ^0.8.24;
 
 /// @author ed4ns
-/// @title  ed4ns ΓÇö Standalone Open Edition NFT & Commit-Reveal Survival Game
+/// @title  ed4ns — Standalone Open Edition NFT & Commit-Reveal Survival Game
 ///
 /// Architecture: Cloneable (EIP-1167) NFT survival game
-///   - Initializable instead of constructor ΓÇö used by Ed4nsFactory clones
+///   - Initializable instead of constructor — used by Ed4nsFactory clones
 ///   - Commit-Reveal future blockhash randomizer (completely free, no Chainlink VRF)
 ///   - O(1) gas lazy mathematical evaluation survivor game engine
 
@@ -2888,17 +2885,17 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     error BadState();
     error BadTx();
 
-    // ΓöÇΓöÇΓöÇ Constants ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Constants ───────────────────────────────────────────────────────────
     uint256 public constant FINAL_SURVIVORS = 4;
 
-    // ΓöÇΓöÇΓöÇ Clone init guard ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Clone init guard ────────────────────────────────────────────────────
     bool private _initialized;
 
-    // ΓöÇΓöÇΓöÇ Metadata (overriding ERC721 name/symbol) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Metadata (overriding ERC721 name/symbol) ────────────────────────────
     string private _tokenName;
     string private _tokenSymbol;
 
-    // ΓöÇΓöÇΓöÇ Game State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Game State ──────────────────────────────────────────────────────────
     address payable public artist;
     address payable public protocol;
     uint256 public mintPrice;
@@ -2928,7 +2925,7 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     uint256 public roundCount;
     mapping(uint256 => bool) public prizeClaimed;
 
-    // ΓöÇΓöÇΓöÇ Events ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Events ──────────────────────────────────────────────────────────────
     event MintOpen(uint256 openTime, uint256 closeTime, uint256 price);
     event TokenMinted(address indexed to, uint256 indexed tokenId, uint256 price);
     event GameInitialized(uint256 totalPlayers, string artworkURI, uint256 prizePool);
@@ -2944,10 +2941,10 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         _;
     }
 
-    // ΓöÇΓöÇΓöÇ Initializer (called once per clone) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ─── Initializer (called once per clone) ─────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
     // SeaDrop Integration
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
 
     mapping(address => bool) internal _allowedSeaDrop;
 
@@ -3027,18 +3024,25 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     function royaltyBasisPoints() external view override returns (uint256) { return 0; }
     function royaltyInfo(uint256, uint256) external view override returns (address, uint256) { return (address(0), 0); }
     
+    // OpenSea Studio Ownership Check Failsafe
+    function owner() external view returns (address) { return artist; }
+    
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, IERC165) returns (bool) {
-        return interfaceId == type(INonFungibleSeaDropToken).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(INonFungibleSeaDropToken).interfaceId || 
+               interfaceId == 0x8bcefd3e || // ISeaDropTokenContractMetadata
+               interfaceId == 0x2a55205a || // IERC2981 (Royalties)
+               interfaceId == 0x49064906 || // ERC-4906 (Metadata Update)
+               super.supportsInterface(interfaceId);
     }
 
-    // ΓöÇΓöÇΓöÇ Constructor (implementation lock only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Constructor (implementation lock only) ───────────────────────────────
     /// @dev Locks the implementation contract so it can never be initialized directly.
     ///      All real deployments happen via Ed4nsFactory clones + initialize().
     constructor() ERC721("", "") {
         _initialized = true; // prevent implementation from being used
     }
 
-    // ΓöÇΓöÇΓöÇ Initializer (called once per clone) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Initializer (called once per clone) ─────────────────────────────────
     function initialize(GameConfig calldata config) external {
         if (_initialized) revert BadState();
         if (config.artist == address(0)) revert InvalidArgs();
@@ -3069,13 +3073,13 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         emit MintOpen(config.mintOpenTime, config.mintCloseTime, config.mintPrice);
     }
 
-    // ΓöÇΓöÇΓöÇ ERC721 name/symbol overrides ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── ERC721 name/symbol overrides ────────────────────────────────────────
     function name() public view override returns (string memory) { return _tokenName; }
     function symbol() public view override returns (string memory) { return _tokenSymbol; }
 
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-    // Phase 1 ΓÇö Public Open Edition Minting
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
+    // Phase 1 — Public Open Edition Minting
+    // ═════════════════════════════════════════════════════════════════════════
 
     /// @notice Publicly mint tokens during the open edition window.
     ///         Splits the payment: 45% prize pool, 45% artist, 10% protocol.
@@ -3143,9 +3147,9 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         emit BatchMetadataUpdate(1, type(uint256).max);
     }
 
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-    // Phase 2 ΓÇö Future Blockhash Commit-Reveal Cuts (100% Free & On-Chain!)
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
+    // Phase 2 — Future Blockhash Commit-Reveal Cuts (100% Free & On-Chain!)
+    // ═════════════════════════════════════════════════════════════════════════
 
     /// @notice Commit to a future blockhash to trigger the elimination round.
     function triggerCut() external {
@@ -3186,9 +3190,9 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         emit BatchMetadataUpdate(1, type(uint256).max);
     }
 
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-    // Lazy Evaluation ΓÇö Pure Mathematical Status Computation
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
+    // Lazy Evaluation — Pure Mathematical Status Computation
+    // ═════════════════════════════════════════════════════════════════════════
 
     /// @notice Deterministically trace a token's index through active shuffles.
     function isTokenAlive(uint256 tokenId) public view returns (bool) {
@@ -3267,9 +3271,9 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         return poolSize;
     }
 
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-    // Phase 3 ΓÇö Prize Claim
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
+    // Phase 3 — Prize Claim
+    // ═════════════════════════════════════════════════════════════════════════
 
     /// @notice Winning token holders claim their ETH payouts share.
     function claimPrize(uint256 tokenId) external {
@@ -3289,9 +3293,9 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         emit MetadataUpdate(tokenId);
     }
 
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
     // Dynamic Metadata & Borders
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+    // ═════════════════════════════════════════════════════════════════════════
 
     /// @notice Dynamic JSON tokenURI containing SVG borders and status attributes.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
@@ -3387,7 +3391,7 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         return string(abi.encodePacked(part1, part2a, part2b));
     }
 
-    // ΓöÇΓöÇΓöÇ Emergency & Admin ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Emergency & Admin ───────────────────────────────────────────────────
 
     function resetCutPending() external onlyArtist {
         if (!cutPending || (block.number <= revealBlock + 256 && block.number <= revealBlock + 25)) revert BadState();
@@ -3418,7 +3422,7 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         }
     }
 
-    // ΓöÇΓöÇΓöÇ View Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── View Helpers ────────────────────────────────────────────────────────
 
     function aliveCount() external view returns (uint256) {
         if (!gameInitialized) return 0;
@@ -3460,13 +3464,13 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
 
 // Original license: SPDX_License_Identifier: MIT
 pragma solidity ^0.8.24;
-/// @title  Ed4nsFactoryV2 ΓÇö Clone factory for ed4ns survival games
+/// @title  Ed4nsFactoryV2 — Clone factory for ed4ns survival games
 /// @notice Deploys minimal EIP-1167 proxy clones of the ed4ns implementation.
 ///         The factory is tiny (~3KB) because it does NOT embed ed4ns bytecode.
 ///         Deploy ed4ns once as the implementation, then clone it cheaply per game.
 contract Ed4nsFactoryV2 {
 
-    // ΓöÇΓöÇΓöÇ State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── State ───────────────────────────────────────────────────────────────
     address public owner;
     address payable public protocol;
 
@@ -3479,7 +3483,7 @@ contract Ed4nsFactoryV2 {
     address[] private _games;
     mapping(address => address[]) public gamesByArtist;
 
-    // ΓöÇΓöÇΓöÇ Events ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Events ──────────────────────────────────────────────────────────────
     event GameDeployed(
         address indexed gameAddress,
         address indexed artist
@@ -3488,13 +3492,13 @@ contract Ed4nsFactoryV2 {
     event FeeSplitsUpdated(uint256 prize, uint256 artist, uint256 protocol);
     event OwnershipTransferred(address indexed newOwner);
 
-    // ΓöÇΓöÇΓöÇ Modifiers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Modifiers ───────────────────────────────────────────────────────────
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
         _;
     }
 
-    // ΓöÇΓöÇΓöÇ Constructor ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Constructor ─────────────────────────────────────────────────────────
     /// @param _protocol  Wallet receiving the protocol share of every mint.
     constructor(address payable _protocol) {
         require(_protocol != address(0), "Invalid protocol");
@@ -3505,7 +3509,7 @@ contract Ed4nsFactoryV2 {
         masterImplementation = address(new ed4nsV2());
     }
 
-    // ΓöÇΓöÇΓöÇ Protocol Management ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Protocol Management ─────────────────────────────────────────────────
     function setProtocol(address payable _protocol) external onlyOwner {
         require(_protocol != address(0), "Invalid address");
         protocol = _protocol;
@@ -3526,7 +3530,7 @@ contract Ed4nsFactoryV2 {
         emit OwnershipTransferred(newOwner);
     }
 
-    // ΓöÇΓöÇΓöÇ Deploy ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Deploy ──────────────────────────────────────────────────────────────
     struct DeployParams {
         string name;
         string symbol;
@@ -3569,7 +3573,7 @@ contract Ed4nsFactoryV2 {
         return clone;
     }
 
-    // ΓöÇΓöÇΓöÇ Registry Views ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─── Registry Views ──────────────────────────────────────────────────────
     function gameCount() external view returns (uint256) { return _games.length; }
     function getGames() external view returns (address[] memory) { return _games; }
 
