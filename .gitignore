@@ -11,3 +11,5 @@ coverage.json
 out/
 build/
 dist/
+checks-contracts/
+
