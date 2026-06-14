@@ -845,7 +845,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
         {/* Artist init panel */}
         {isArtist && !gameInitialized && (
-          <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
+          <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between', border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
             <div
               style={{
                 fontFamily: "var(--font-mono)",
@@ -855,28 +855,39 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 color: "var(--red)",
               }}
             >
-              Init Game (Artist)
+              Creator Admin: Initialize Arena
             </div>
-            {mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime) ? (
-              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                Minting has not started yet. Game cannot be initialized.
-              </p>
-            ) : mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10 ? (
-              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                Minting is currently open. You can initialize the arena early once 10 tokens are minted.
-              </p>
+            
+            {mintOpenTime && mintCloseTime ? (
+              // Legacy V1/V2 Factory logic
+              mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime) ? (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Minting has not started yet. Game cannot be initialized.
+                </p>
+              ) : mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10 ? (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Minting is currently open. You can initialize the arena early once 10 tokens are minted.
+                </p>
+              ) : (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Mint has closed or early initialization is unlocked. Initialize the arena to begin elimination rounds.
+                </p>
+              )
             ) : (
+              // Native SeaDrop Standalone logic (OpenSea Studio manages schedules)
               <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                Mint has closed or early initialization is unlocked. Initialize the arena to begin elimination rounds.
+                Once your drop has concluded on OpenSea Studio, initialize the arena to mathematically lock the supply and start the survival engine. Requires at least 1 mint.
               </p>
             )}
+
             <button
               className="btn btn-primary btn-large"
               style={{ width: "100%" }}
               onClick={handleInitGame}
               disabled={Boolean(
                 (mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime)) ||
-                (mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10)
+                (mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10) ||
+                (Number(totalSupply || 0) === 0)
               )}
             >
               Initialize Arena

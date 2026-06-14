@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import { formatEther } from "viem";
-import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, STANDALONE_GAMES, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -52,15 +52,15 @@ export function GameCard({ address, version }: { address: string; version: strin
     query: { refetchInterval: 10000 },
   });
 
-  const supply      = results?.[0]?.result as bigint | undefined;
-  const price       = results?.[1]?.result as bigint | undefined;
-  const closeTime   = results?.[2]?.result as bigint | undefined;
-  const alive       = results?.[3]?.result as bigint | undefined;
-  const finished    = results?.[4]?.result as boolean | undefined;
-  const pool        = results?.[5]?.result as bigint | undefined;
+  const supply = results?.[0]?.result as bigint | undefined;
+  const price = results?.[1]?.result as bigint | undefined;
+  const closeTime = results?.[2]?.result as bigint | undefined;
+  const alive = results?.[3]?.result as bigint | undefined;
+  const finished = results?.[4]?.result as boolean | undefined;
+  const pool = results?.[5]?.result as bigint | undefined;
   const mintingOpen = results?.[6]?.result as boolean | undefined;
-  const gameName    = results?.[7]?.result as string | undefined;
-  const artworkURI  = results?.[8]?.result as string | undefined;
+  const gameName = results?.[7]?.result as string | undefined;
+  const artworkURI = results?.[8]?.result as string | undefined;
 
   // Resolve artwork
   useEffect(() => {
@@ -222,7 +222,8 @@ export default function HomeGallery() {
 
   const allGames = [
     ...gamesV1.map(addr => ({ address: addr, version: "V1" })),
-    ...gamesV2.map(addr => ({ address: addr, version: "V2" }))
+    ...gamesV2.map(addr => ({ address: addr, version: "V2" })),
+    ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, version: "V2-SeaDrop" }))
   ];
 
   return (
@@ -266,15 +267,15 @@ export default function HomeGallery() {
 
           <div className="hero-trust">
             <div className="hero-trust-item">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
               Verified on Basescan
             </div>
             <div className="hero-trust-item">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
               Open Source
             </div>
             <div className="hero-trust-item">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
               Fully On-Chain
             </div>
           </div>
@@ -322,15 +323,15 @@ export default function HomeGallery() {
           </div>
           <div className="footer-links">
             <a href="https://x.com/MiracleOtugo" target="_blank" rel="noopener noreferrer" className="footer-link">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
               Twitter
             </a>
             <a href="https://miracleotugo.art" target="_blank" rel="noopener noreferrer" className="footer-link">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" /></svg>
               Website
             </a>
             <a href="https://github.com/MirakoolDev/ed4ns" target="_blank" rel="noopener noreferrer" className="footer-link">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
               GitHub
             </a>
           </div>

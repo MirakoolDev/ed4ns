@@ -10,7 +10,7 @@ import {
 } from "wagmi";
 import { formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS, getAlchemyUrl, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, STANDALONE_GAMES, getAlchemyUrl, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { computeAllStatuses } from "@/lib/gameEngine";
 
@@ -282,14 +282,27 @@ export default function HoldingsPage() {
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
 
-  // Fetch all games from factory
-  const { data: gamesData } = useReadContract({
+  // Fetch all games from factory V1
+  const { data: gamesDataV1 } = useReadContract({
     address: FACTORY_ADDRESS as `0x${string}`,
     abi: FACTORY_ABI,
     functionName: "getGames",
   });
 
-  const games = (gamesData as string[]) || [];
+  // Fetch all games from factory V2
+  const { data: gamesDataV2 } = useReadContract({
+    address: FACTORY_ADDRESS_V2 ? (FACTORY_ADDRESS_V2 as `0x${string}`) : undefined,
+    abi: FACTORY_ABI,
+    functionName: "getGames",
+  });
+
+  const gamesV1 = (gamesDataV1 as string[]) || [];
+  const gamesV2 = (gamesDataV2 as string[]) || [];
+  const games = Array.from(new Set([
+    ...gamesV1,
+    ...gamesV2,
+    ...(STANDALONE_GAMES || [])
+  ]));
 
   return (
     <div className="page-root">
