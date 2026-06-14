@@ -2,7 +2,7 @@
 // Update these after deploying via Remix.
 
 export const FACTORY_ADDRESS = "0x18c6FAa50C3a5e66C8E0EA02Aef9012Cb63095BF"; // Ed4nsFactory (V1)
-export const FACTORY_ADDRESS_V2: `0x${string}`[] = ["0x2e67fab851Abad4B6dAd40B0eb9C82E1020A9469", "0xce2b3fdf0e230dd9da644ec348ea64e5b59a20b6"]; // Ed4nsFactoryV2 (V2) - Update after deployment
+export const FACTORY_ADDRESS_V2: `0x${string}`[] = ["0x2e67fab851Abad4B6dAd40B0eb9C82E1020A9469", "0xe81Fb3F6b3b09Ddf7d6a101EF456F99101Ac1887"]; // Ed4nsFactoryV2 (V2) - Update after deployment
 export const PROTOCOL_ADDRESS = "0xa0a6e5C0F17DA5e5337C9CD5bf353C61BA375c0D"; // 10% fee recipient
 export const STANDALONE_GAMES = ["0x8257Ea8CD22c397815BB0259EE0BE590752ce956"];
 
