@@ -12,7 +12,7 @@ import {
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
-import { getExplorerUrl } from "@/config";
+import { getExplorerUrl, STANDALONE_GAMES } from "@/config";
 
 const resolveGatewayUrl = (url: string): string => {
   if (!url) return "";
@@ -36,6 +36,38 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const { address: NFT_ADDRESS } = use(params);
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
+
+  // Dynamic OpenSea Redirect for standalone drops
+  useEffect(() => {
+    if (STANDALONE_GAMES.includes(NFT_ADDRESS)) {
+      const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`);
+      if (slug) {
+        window.location.href = `https://opensea.io/collection/${slug}/overview`;
+        return;
+      }
+      fetch(`/api/opensea-slug?address=${NFT_ADDRESS}&chainId=${chainId || 8453}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.slug) {
+            window.location.href = `https://opensea.io/collection/${data.slug}/overview`;
+          } else {
+            window.location.href = `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`;
+          }
+        }).catch(() => {
+          window.location.href = `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`;
+        });
+    }
+  }, [NFT_ADDRESS, chainId]);
+
+  if (STANDALONE_GAMES.includes(NFT_ADDRESS)) {
+    return (
+      <div className="page-root" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <div className="spinner" />
+        <span style={{ marginLeft: 16, fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>Redirecting to OpenSea...</span>
+      </div>
+    );
+  }
+
   const [qty, setQty] = useState(1);
   const [isMinting, setIsMinting] = useState(false);
   const [mintTxHash, setMintTxHash] = useState<`0x${string}` | undefined>();

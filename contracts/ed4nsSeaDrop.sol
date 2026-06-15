@@ -159,6 +159,11 @@ contract ed4nsSeaDrop is ERC721SeaDrop {
         _safeMint(minter, quantity);
     }
 
+    /// @dev Override ERC721A starting token ID to 1 for game logic compatibility
+    function _startTokenId() internal view virtual override returns (uint256) {
+        return 1;
+    }
+
     /// @notice Backwards compatible game initialization
     function initializeGame(uint256, uint256, string calldata) external onlyArtist {
         if (gameInitialized) revert BadState();
