@@ -10,7 +10,8 @@ import {
 } from "wagmi";
 import { formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, STANDALONE_GAMES, getAlchemyUrl, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, STANDALONE_GAMES, getAlchemyUrl, getExplorerUrl } from "@/config";
+import { base, celo } from "wagmi/chains";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { computeAllStatuses } from "@/lib/gameEngine";
 
@@ -211,7 +212,7 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
         <div className="holdings-header">
           <div>
-            <Link href={`/arena/${gameAddress}`} className="game-title">
+            <Link href={`/arena/${gameAddress}?chainId=${chainId}`} className="game-title">
               {gameName || `Game ${gameAddress.slice(0, 6)}…`}
             </Link>
             <div className="game-contract">
@@ -227,10 +228,10 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Link href={`/arena/${gameAddress}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
+          <Link href={`/arena/${gameAddress}?chainId=${chainId}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
             Arena
           </Link>
-          <Link href={`/claim/${gameAddress}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
+          <Link href={`/claim/${gameAddress}?chainId=${chainId}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
             Claim
           </Link>
         </div>
@@ -282,31 +283,42 @@ export default function HoldingsPage() {
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
 
-  // Fetch all games from factory V1
-  const { data: gamesDataV1 } = useReadContract({
-    address: FACTORY_ADDRESS as `0x${string}`,
+  // Fetch all games from both chains
+  const { data: gamesDataV1Base } = useReadContract({
+    address: FACTORY_ADDRESS_BASE ? (FACTORY_ADDRESS_BASE as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
+    chainId: base.id,
   });
 
-  // Fetch all games from factory V2
-  const { data: gamesDataV2 } = useReadContracts({
-    contracts: FACTORY_ADDRESS_V2.map((addr) => ({
+  const { data: gamesDataV2Base } = useReadContracts({
+    contracts: FACTORY_ADDRESS_V2_BASE.map((addr) => ({
       address: addr,
       abi: FACTORY_ABI,
       functionName: "getGames",
+      chainId: base.id,
     })),
   });
 
-  const gamesV1 = (gamesDataV1 as string[]) || [];
-  const gamesV2 = gamesDataV2 
-    ? gamesDataV2.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
+  const { data: gamesDataV1Celo } = useReadContract({
+    address: FACTORY_ADDRESS_CELO ? (FACTORY_ADDRESS_CELO as `0x${string}`) : undefined,
+    abi: FACTORY_ABI,
+    functionName: "getGames",
+    chainId: celo.id,
+  });
+
+  const gamesV1Base = (gamesDataV1Base as string[]) || [];
+  const gamesV2Base = gamesDataV2Base 
+    ? gamesDataV2Base.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
     : [];
-  const games = Array.from(new Set([
-    ...gamesV1,
-    ...gamesV2,
-    ...(STANDALONE_GAMES || [])
-  ]));
+  const gamesV1Celo = (gamesDataV1Celo as string[]) || [];
+
+  const allGames = [
+    ...gamesV1Base.map(addr => ({ address: addr, chainId: base.id })),
+    ...gamesV2Base.map(addr => ({ address: addr, chainId: base.id })),
+    ...gamesV1Celo.map(addr => ({ address: addr, chainId: celo.id })),
+    ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, chainId: base.id })),
+  ];
 
   return (
     <div className="page-root">
@@ -331,7 +343,7 @@ export default function HoldingsPage() {
           My Holdings
         </h1>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 4 }}>
-          Tokens across {games.length} game{games.length !== 1 ? "s" : ""}
+          Tokens across {allGames.length} game{allGames.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -361,7 +373,7 @@ export default function HoldingsPage() {
             Connect your wallet to see your tokens across all games.
           </p>
         </div>
-      ) : games.length === 0 ? (
+      ) : allGames.length === 0 ? (
         <div
           style={{
             display: "flex",
@@ -386,8 +398,8 @@ export default function HoldingsPage() {
         </div>
       ) : (
         <div>
-          {games.map((g) => (
-            <GameHoldings key={g} gameAddress={g} userAddress={userAddress} chainId={chainId} />
+          {allGames.map((g) => (
+            <GameHoldings key={g.address} gameAddress={g.address} userAddress={userAddress} chainId={g.chainId} />
           ))}
         </div>
       )}
