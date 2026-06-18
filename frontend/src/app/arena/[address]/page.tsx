@@ -13,7 +13,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import { formatEther } from "viem";
-import { FACTORY_ADDRESS, AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl } from "@/config";
+import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl } from "@/config";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { computeAllStatuses, type TokenStatusMap } from "@/lib/gameEngine";
