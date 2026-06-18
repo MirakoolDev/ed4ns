@@ -10,6 +10,7 @@ import {
   useWaitForTransactionReceipt,
   usePublicClient,
   useChainId,
+  useSwitchChain,
 } from "wagmi";
 import { formatEther } from "viem";
 import { FACTORY_ADDRESS, AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl } from "@/config";
@@ -58,11 +59,14 @@ const CARD_BORDER: Record<string, string> = {
   claimed:  "2px solid var(--blue)",
 };
 
-export default function Page({ params }: { params: Promise<{ address: string }> }) {
+export default function Page({ params, searchParams }: { params: Promise<{ address: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const unwrappedParams = use(params);
   const NFT_ADDRESS = unwrappedParams.address as `0x${string}`;
+  const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const { switchChainAsync } = useSwitchChain();
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [tokens, setTokens] = useState<TokenData[]>([]);
@@ -102,7 +106,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     setEditingSlug(false);
   };
 
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId });
 
   // Admin state
   const [artworkInput, setArtworkInput] = useState("");
@@ -122,12 +126,14 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "artist",
+    chainId,
   });
 
   const { data: prizePool } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePool",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -135,6 +141,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "aliveCount",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -142,6 +149,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "roundCount",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -149,6 +157,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "gameFinished",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -156,6 +165,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "gameInitialized",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -163,6 +173,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "mintingOpen",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -170,18 +181,21 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "mintOpenTime",
+    chainId,
   });
 
   const { data: mintCloseTime } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "mintCloseTime",
+    chainId,
   });
 
   const { data: cutPending } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "cutPending",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -189,6 +203,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "lastCutTimestamp",
+    chainId,
     query: { refetchInterval: 10000 },
   });
 
@@ -198,6 +213,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "minCutInterval",
+    chainId,
   });
 
   useEffect(() => {
@@ -226,6 +242,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePerWinner",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -233,6 +250,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "totalSupply",
+    chainId,
     query: { refetchInterval: 20000, staleTime: 15000 },
   });
 
@@ -268,6 +286,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "artworkURI",
+    chainId,
     query: { staleTime: 60000 },
   });
 
@@ -275,6 +294,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "startTokenId",
+    chainId,
     query: { staleTime: Infinity },
   });
 
@@ -282,6 +302,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "endTokenId",
+    chainId,
     query: { refetchInterval: 20000, staleTime: 15000 },
   });
 
@@ -293,6 +314,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       abi: NFT_ABI,
       functionName: "getRoundSeed" as const,
       args: [BigInt(i)],
+      chainId,
     })
   );
 
@@ -595,7 +617,27 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealMined, isRevealError]);
 
+  const checkNetwork = async () => {
+    if (walletChainId !== chainId) {
+      if (switchChainAsync) {
+        try {
+          addToast("Switching network...", "info");
+          await switchChainAsync({ chainId });
+          return true;
+        } catch (e: any) {
+          addToast("Failed to switch network", "error");
+          return false;
+        }
+      } else {
+        addToast("Please switch network in your wallet", "error");
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleTriggerCut = async () => {
+    if (!(await checkNetwork())) return;
     try {
       setIsSubmittingCut(true);
       addToast("Triggering elimination round…", "info");
@@ -612,6 +654,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   };
 
   const handleRevealCut = async () => {
+    if (!(await checkNetwork())) return;
     try {
       setIsSubmittingReveal(true);
       addToast("Revealing round results…", "info");
@@ -628,6 +671,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   };
 
   const handleInitGame = async () => {
+    if (!(await checkNetwork())) return;
     try {
       addToast("Initializing game…", "info");
       await writeContractAsync({
@@ -642,6 +686,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   };
 
   const handleClaim = async (tokenId: number) => {
+    if (!(await checkNetwork())) return;
     try {
       addToast(`Claiming prize for #${tokenId}…`, "info");
       const hash = await writeContractAsync({
@@ -687,10 +732,22 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   return (
     <div className="page-root">
       {/* Breadcrumb */}
-      <div className="breadcrumb">
+      <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ color: "var(--text-primary)" }}>Arena</span>
         <span className="breadcrumb-sep">/</span>
         <span>Round {roundCount?.toString() ?? "0"}</span>
+        <div style={{
+          background: chainId === 42220 ? "rgba(252,255,82,0.9)" : "rgba(0,82,255,0.9)",
+          color: chainId === 42220 ? "black" : "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          marginLeft: "auto"
+        }}>
+          {chainId === 42220 ? "CELO" : "BASE"}
+        </div>
       </div>
 
       {/* Phase banner */}
@@ -773,7 +830,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               onClick={handleRevealCut}
               disabled={!userAddress || isSubmittingReveal || isMiningReveal}
             >
-              {isMiningReveal ? "Confirming…" : isSubmittingReveal ? "Broadcasting…" : "Reveal Cut Results"}
+              {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 42220 ? "Celo" : "Base"}` : isMiningReveal ? "Confirming…" : isSubmittingReveal ? "Broadcasting…" : "Reveal Cut Results"}
             </button>
           ) : (
             <button
@@ -781,14 +838,14 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               style={{ width: "100%" }}
               onClick={handleTriggerCut}
               disabled={
-                !cutEligible ||
                 !userAddress ||
+                (!cutEligible && walletChainId === chainId) ||
                 !!gameFinished ||
                 isSubmittingCut ||
                 isMiningCut
               }
             >
-              {isMiningCut
+              {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 42220 ? "Celo" : "Base"}` : isMiningCut
                 ? "Confirming…"
                 : isSubmittingCut
                 ? "Broadcasting…"

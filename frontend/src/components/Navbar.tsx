@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
+import { celo } from "wagmi/chains";
 import { AUTHORIZED_CREATOR } from "@/config";
 
 const NAV_LINKS = [
@@ -15,8 +16,10 @@ const NAV_LINKS = [
 export function Navbar() {
   const pathname = usePathname();
   const { address } = useAccount();
+  const chainId = useChainId();
 
   const isCreator = !!address && address.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
+  const showLaunch = isCreator || (!!address && chainId === celo.id);
 
   return (
     <header className="navbar">
@@ -28,7 +31,7 @@ export function Navbar() {
 
       {/* Nav links */}
       <nav className="navbar-nav">
-        {isCreator && (
+        {showLaunch && (
           <Link
             href="/launch"
             className={`nav-link ${pathname === "/launch" ? "active" : ""}`}
@@ -107,13 +110,43 @@ export function Navbar() {
                   );
                 }
                 return (
-                  <button
-                    onClick={openAccountModal}
-                    type="button"
-                    className="btn btn-outline"
-                  >
-                    {account.displayName}
-                  </button>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button
+                      onClick={openChainModal}
+                      style={{ display: 'flex', alignItems: 'center' }}
+                      type="button"
+                      className="btn btn-outline"
+                    >
+                      {chain.hasIcon && (
+                        <div
+                          style={{
+                            background: chain.iconBackground,
+                            width: 12,
+                            height: 12,
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                            marginRight: 4,
+                          }}
+                        >
+                          {chain.iconUrl && (
+                            <img
+                              alt={chain.name ?? 'Chain icon'}
+                              src={chain.iconUrl}
+                              style={{ width: 12, height: 12 }}
+                            />
+                          )}
+                        </div>
+                      )}
+                      {chain.name}
+                    </button>
+                    <button
+                      onClick={openAccountModal}
+                      type="button"
+                      className="btn btn-outline"
+                    >
+                      {account.displayName}
+                    </button>
+                  </div>
                 );
               })()}
             </div>

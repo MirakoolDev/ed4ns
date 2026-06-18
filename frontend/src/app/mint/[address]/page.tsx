@@ -8,6 +8,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useChainId,
+  useSwitchChain,
 } from "wagmi";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
@@ -32,10 +33,13 @@ interface MintEvent {
   blockAgo: number;
 }
 
-export default function Page({ params }: { params: Promise<{ address: string }> }) {
+export default function Page({ params, searchParams }: { params: Promise<{ address: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { address: NFT_ADDRESS } = use(params);
+  const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const { switchChainAsync } = useSwitchChain();
 
   // Dynamic OpenSea Redirect for standalone drops
   useEffect(() => {
@@ -85,16 +89,16 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   // Contract reads
   const { data: results, refetch: refetchSupply } = useReadContracts({
     contracts: [
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "name" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "collectionDescription" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintOpenTime" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artistSharePercent" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePoolSharePercent" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePool" },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "name", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "collectionDescription", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintOpenTime", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artistSharePercent", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePoolSharePercent", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePool", chainId },
     ],
     query: { refetchInterval: 5000 },
   });
@@ -162,6 +166,20 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
   const handleMint = async () => {
     if (!mintPrice || !userAddress) return;
+    if (walletChainId !== chainId) {
+      if (switchChainAsync) {
+        try {
+          addToast("Switching network...", "info");
+          await switchChainAsync({ chainId });
+        } catch (e: any) {
+          addToast("Failed to switch network", "error");
+          return;
+        }
+      } else {
+        addToast("Please switch network in your wallet", "error");
+        return;
+      }
+    }
     try {
       setIsMinting(true);
       addToast(`Minting ${qty} token${qty > 1 ? "s" : ""}…`, "info");
@@ -193,8 +211,8 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   return (
     <div className="page-root">
       {/* Breadcrumb */}
-      <div className="breadcrumb">
-        <Link href={`/arena/${NFT_ADDRESS}`}>Arena</Link>
+      <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Link href={`/arena/${NFT_ADDRESS}?chainId=${chainId}`}>Arena</Link>
         <span className="breadcrumb-sep">/</span>
         <span>Mint</span>
         {totalSupply !== undefined && (
@@ -205,6 +223,18 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             </span>
           </>
         )}
+        <div style={{
+          background: chainId === 42220 ? "rgba(252,255,82,0.9)" : "rgba(0,82,255,0.9)",
+          color: chainId === 42220 ? "black" : "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          marginLeft: "auto"
+        }}>
+          {chainId === 42220 ? "CELO" : "BASE"}
+        </div>
       </div>
 
       {/* Stats row */}
@@ -212,7 +242,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         <div className="stat-cell">
           <span className="stat-label">Mint Price</span>
           <span className="stat-value">{priceEth}</span>
-          <span className="stat-unit">ETH on Base</span>
+          <span className="stat-unit">ETH on {chainId === 42220 ? "Celo" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Total Minted</span>
@@ -226,7 +256,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
           <span className="stat-value">
             {prizePool ? Number(formatEther(prizePool as bigint)).toFixed(3) : "0.000"}
           </span>
-          <span className="stat-unit">ETH on Base</span>
+          <span className="stat-unit">ETH on {chainId === 42220 ? "Celo" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Payout Split</span>
@@ -385,6 +415,8 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             >
               {!userAddress
                 ? "Connect Wallet"
+                : walletChainId !== chainId
+                ? `Switch to ${chainId === 42220 ? "Celo" : "Base"}`
                 : hasEnded
                 ? "Mint Closed"
                 : !isOpen

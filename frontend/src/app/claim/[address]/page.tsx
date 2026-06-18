@@ -8,6 +8,7 @@ import {
   useWriteContract,
   useChainId,
   usePublicClient,
+  useSwitchChain,
 } from "wagmi";
 import { formatEther } from "viem";
 import Link from "next/link";
@@ -22,11 +23,14 @@ interface WinningToken {
 
 import { use } from "react";
 
-export default function Page({ params }: { params: Promise<{ address: string }> }) {
+export default function Page({ params, searchParams }: { params: Promise<{ address: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { address: _nftAddr } = use(params);
   const NFT_ADDRESS = _nftAddr as `0x${string}`;
+  const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const { switchChainAsync } = useSwitchChain();
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
   const [manualTokenId, setManualTokenId] = useState("");
   const [isManualLoading, setIsManualLoading] = useState(false);
@@ -43,6 +47,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePool",
+    chainId,
     query: { refetchInterval: 5000 },
   });
 
@@ -50,6 +55,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePerWinner",
+    chainId,
     query: { refetchInterval: 5000 },
   });
 
@@ -57,6 +63,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "gameFinished",
+    chainId,
     query: { refetchInterval: 5000 },
   });
 
@@ -64,24 +71,28 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "startTokenId",
+    chainId,
   });
 
   const { data: endTokenId } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "endTokenId",
+    chainId,
   });
 
   const { data: mintingOpen } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "mintingOpen",
+    chainId,
   });
 
   const { data: totalSupply } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "totalSupply",
+    chainId,
     query: { refetchInterval: 5000 },
   });
 
@@ -89,6 +100,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "aliveCount",
+    chainId,
     query: { refetchInterval: 5000 },
   });
 
@@ -96,6 +108,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "roundCount",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -116,6 +129,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       abi: NFT_ABI,
       functionName: "getRoundSeed" as const,
       args: [BigInt(i)],
+      chainId,
     })
   );
 
@@ -148,6 +162,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     abi: NFT_ABI,
     functionName: "ownerOf" as const,
     args: [BigInt(id)],
+    chainId,
   }));
 
   const { data: ownerResults, isLoading: isOwnersLoading, refetch: refetchOwners } = useReadContracts({
@@ -172,12 +187,14 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       abi: NFT_ABI,
       functionName: "isTokenAlive",
       args: [BigInt(id)],
+      chainId,
     });
     stateContracts.push({
       address: NFT_ADDRESS,
       abi: NFT_ABI,
       functionName: "prizeClaimed",
       args: [BigInt(id)],
+      chainId,
     });
   });
 
@@ -198,7 +215,27 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   // ── Write ────────────────────────────────────────────────────────────────
   const { writeContractAsync } = useWriteContract();
 
+  const checkNetwork = async () => {
+    if (walletChainId !== chainId) {
+      if (switchChainAsync) {
+        try {
+          addToast("Switching network...", "info");
+          await switchChainAsync({ chainId });
+          return true;
+        } catch (e: any) {
+          addToast("Failed to switch network", "error");
+          return false;
+        }
+      } else {
+        addToast("Please switch network in your wallet", "error");
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleClaim = async (tokenId: number) => {
+    if (!(await checkNetwork())) return;
     try {
       addToast(`Claiming #${tokenId}…`, "info");
       const hash = await writeContractAsync({
@@ -222,6 +259,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const handleManualClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualTokenId) return;
+    if (!(await checkNetwork())) return;
     try {
       setIsManualLoading(true);
       addToast(`Claiming #${manualTokenId}…`, "info");
@@ -255,10 +293,22 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   return (
     <div className="page-root">
       {/* Breadcrumb */}
-      <div className="breadcrumb">
-        <Link href={`/arena/${NFT_ADDRESS}`}>Arena</Link>
+      <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Link href={`/arena/${NFT_ADDRESS}?chainId=${chainId}`}>Arena</Link>
         <span className="breadcrumb-sep">/</span>
         <span>Claim</span>
+        <div style={{
+          background: chainId === 42220 ? "rgba(252,255,82,0.9)" : "rgba(0,82,255,0.9)",
+          color: chainId === 42220 ? "black" : "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          marginLeft: "auto"
+        }}>
+          {chainId === 42220 ? "CELO" : "BASE"}
+        </div>
       </div>
 
       {/* Stats row */}
@@ -465,9 +515,9 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                             className="btn btn-primary"
                             style={{ padding: "6px 14px", fontSize: 9 }}
                             onClick={() => handleClaim(t.id)}
-                            disabled={!gameFinished}
+                            disabled={!gameFinished && walletChainId === chainId}
                           >
-                            Claim
+                            {walletChainId !== chainId ? `Switch to ${chainId === 42220 ? "Celo" : "Base"}` : "Claim"}
                           </button>
                         )}
                       </td>
@@ -514,9 +564,9 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 type="submit"
                 className="btn btn-primary btn-large"
                 style={{ width: "100%" }}
-                disabled={!manualTokenId || isManualLoading || !userAddress || !gameFinished}
+                disabled={(!manualTokenId && walletChainId === chainId) || isManualLoading || !userAddress || (!gameFinished && walletChainId === chainId)}
               >
-                {isManualLoading ? "Submitting…" : "Claim Prize"}
+                {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 42220 ? "Celo" : "Base"}` : isManualLoading ? "Submitting…" : "Claim Prize"}
               </button>
             </form>
           </div>

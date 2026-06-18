@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useAccount, useChainId, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { celo } from "wagmi/chains";
 import { parseEther, formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, AUTHORIZED_CREATOR, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, AUTHORIZED_CREATOR, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { GameCard } from "../page";
 
@@ -188,7 +189,16 @@ export default function LaunchPage() {
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
-  const [factoryVersion, setFactoryVersion] = useState<"V1" | "V2">("V2");
+  const [factoryVersion, setFactoryVersion] = useState<"V1" | "V2">("V1");
+
+  const isAdmin = !!userAddress && userAddress.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
+  const canCreate = isAdmin || chainId === celo.id;
+
+  useEffect(() => {
+    if (!isAdmin || chainId === celo.id) {
+      setFactoryVersion("V1");
+    }
+  }, [isAdmin, chainId]);
 
   const addToast = (msg: string, type = "info") => {
     const id = Date.now() + Math.random();
@@ -196,25 +206,28 @@ export default function LaunchPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 5000);
   };
 
-  const currentFactoryV2 = Array.isArray(FACTORY_ADDRESS_V2) ? FACTORY_ADDRESS_V2[FACTORY_ADDRESS_V2.length - 1] : FACTORY_ADDRESS_V2;
+  const currentFactoryV1 = chainId === celo.id ? FACTORY_ADDRESS_CELO : FACTORY_ADDRESS_BASE;
+  const currentFactoryV2Array = chainId === celo.id ? [] : FACTORY_ADDRESS_V2_BASE;
+  const currentFactoryV2 = Array.isArray(currentFactoryV2Array) ? currentFactoryV2Array[currentFactoryV2Array.length - 1] : currentFactoryV2Array;
+
+  const targetFactory = factoryVersion === "V1" ? currentFactoryV1 : currentFactoryV2;
 
   // ── Factory reads ────────────────────────────────────────────────────────
   const { data: gameCount } = useReadContract({
-    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
+    address: targetFactory ? (targetFactory as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "gameCount",
     query: { refetchInterval: 15000 },
   });
 
   const { data: games } = useReadContract({
-    address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
+    address: targetFactory ? (targetFactory as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
     query: { refetchInterval: 15000 },
   });
 
   const gameList = (games as `0x${string}`[] | undefined) ?? [];
-  const canCreate = !!userAddress && userAddress.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
 
   // ── Deploy form state ────────────────────────────────────────────────────
   const defaultOpen  = fromUnix(now() + 300);
@@ -250,7 +263,7 @@ export default function LaunchPage() {
       addToast("Deploying game…", "info");
 
       const hash = await writeContractAsync({
-        address: (factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2) as `0x${string}`,
+        address: targetFactory as `0x${string}`,
         abi: FACTORY_ABI,
         functionName: "deployGame",
         args: [{
@@ -397,7 +410,7 @@ export default function LaunchPage() {
           ) : (
             <div className="nft-grid">
               {[...gameList].reverse().map((addr) => (
-                <GameCard key={addr} address={addr} version={factoryVersion} />
+                <GameCard key={addr} address={addr} version={factoryVersion} targetChainId={chainId} />
               ))}
             </div>
           )}
@@ -421,22 +434,24 @@ export default function LaunchPage() {
               </div>
 
               {/* Version Selector */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                <button 
-                  className={`btn ${factoryVersion === "V1" ? "btn-primary" : "btn-outline"}`} 
-                  onClick={() => setFactoryVersion("V1")} 
-                  style={{ flex: 1 }}
-                >
-                  V1 (Legacy)
-                </button>
-                <button 
-                  className={`btn ${factoryVersion === "V2" ? "btn-primary" : "btn-outline"}`} 
-                  onClick={() => setFactoryVersion("V2")} 
-                  style={{ flex: 1 }}
-                >
-                  V2 (SeaDrop)
-                </button>
-              </div>
+              {isAdmin && chainId !== celo.id && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                  <button 
+                    className={`btn ${factoryVersion === "V1" ? "btn-primary" : "btn-outline"}`} 
+                    onClick={() => setFactoryVersion("V1")} 
+                    style={{ flex: 1 }}
+                  >
+                    V1 (Legacy)
+                  </button>
+                  <button 
+                    className={`btn ${factoryVersion === "V2" ? "btn-primary" : "btn-outline"}`} 
+                    onClick={() => setFactoryVersion("V2")} 
+                    style={{ flex: 1 }}
+                  >
+                    V2 (SeaDrop)
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handleDeploy} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {/* Artwork uploader */}
@@ -703,8 +718,8 @@ export default function LaunchPage() {
           <div className="sidebar-row">
             <span className="sidebar-label">Factory</span>
             <span className="sidebar-value" style={{ fontSize: 9 }}>
-              <a href={getExplorerUrl(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
-                {(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2).slice(0, 8)}…{(factoryVersion === "V1" ? FACTORY_ADDRESS : currentFactoryV2).slice(-6)}
+              <a href={getExplorerUrl(targetFactory, chainId)} target="_blank" rel="noopener noreferrer" className="address-link">
+                {targetFactory ? `${targetFactory.slice(0, 8)}…${targetFactory.slice(-6)}` : "—"}
               </a>
             </span>
           </div>

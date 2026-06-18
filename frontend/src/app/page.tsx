@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import { base, celo } from "wagmi/chains";
 import { formatEther } from "viem";
-import { FACTORY_ADDRESS, FACTORY_ADDRESS_V2, STANDALONE_GAMES, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, STANDALONE_GAMES, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -28,7 +29,7 @@ const resolveGatewayUrl = (url: string): string => {
   return url;
 };
 
-export function GameCard({ address, version }: { address: string; version: string }) {
+export function GameCard({ address, version, targetChainId }: { address: string; version: string; targetChainId: number }) {
   const [, setTick] = useState(0);
   const [artworkUrl, setArtworkUrl] = useState("");
   const chainId = useChainId();
@@ -39,15 +40,15 @@ export function GameCard({ address, version }: { address: string; version: strin
 
   const { data: results } = useReadContracts({
     contracts: [
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "aliveCount" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "gameFinished" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "prizePool" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintingOpen" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "name" },
-      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI" },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "aliveCount", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "gameFinished", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "prizePool", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintingOpen", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "name", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI", chainId: targetChainId },
     ],
     query: { refetchInterval: 10000 },
   });
@@ -91,22 +92,39 @@ export function GameCard({ address, version }: { address: string; version: strin
     >
       {/* Artwork */}
       <div style={{ aspectRatio: "1", background: "var(--bg-card-2)", overflow: "hidden", position: "relative" }}>
-        {/* Version Badge */}
+        {/* Badges Container */}
         <div style={{
           position: "absolute",
           top: 8,
           left: 8,
-          background: "rgba(0,0,0,0.6)",
-          color: "white",
-          padding: "2px 6px",
-          borderRadius: 4,
-          fontSize: 8,
-          fontFamily: "var(--font-mono)",
-          fontWeight: 700,
+          display: "flex",
+          gap: 4,
           zIndex: 10,
-          backdropFilter: "blur(4px)",
         }}>
-          {version}
+          <div style={{
+            background: "rgba(0,0,0,0.6)",
+            color: "white",
+            padding: "2px 6px",
+            borderRadius: 4,
+            fontSize: 8,
+            fontFamily: "var(--font-mono)",
+            fontWeight: 700,
+            backdropFilter: "blur(4px)",
+          }}>
+            {version}
+          </div>
+          <div style={{
+            background: targetChainId === celo.id ? "rgba(252,255,82,0.9)" : "rgba(0,82,255,0.9)",
+            color: targetChainId === celo.id ? "black" : "white",
+            padding: "2px 6px",
+            borderRadius: 4,
+            fontSize: 8,
+            fontFamily: "var(--font-mono)",
+            fontWeight: 700,
+            backdropFilter: "blur(4px)",
+          }}>
+            {targetChainId === celo.id ? "CELO" : "BASE"}
+          </div>
         </div>
         {artworkUrl ? (
           <img
@@ -155,7 +173,7 @@ export function GameCard({ address, version }: { address: string; version: strin
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em" }}>
-              <a href={getExplorerUrl(address, chainId)} target="_blank" rel="noopener noreferrer" className="address-link" onClick={(e) => e.stopPropagation()}>
+              <a href={getExplorerUrl(address, targetChainId)} target="_blank" rel="noopener noreferrer" className="address-link" onClick={(e) => e.stopPropagation()}>
                 {address.slice(0, 6)}…{address.slice(-4)}
               </a>
             </span>
@@ -189,13 +207,13 @@ export function GameCard({ address, version }: { address: string; version: strin
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 6 }}>
-          <Link href={`/mint/${address}`} className="btn btn-outline" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
+          <Link href={`/mint/${address}?chainId=${targetChainId}`} className="btn btn-outline" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
             Mint
           </Link>
-          <Link href={`/arena/${address}`} className="btn btn-primary" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
+          <Link href={`/arena/${address}?chainId=${targetChainId}`} className="btn btn-primary" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
             Arena
           </Link>
-          <Link href={`/claim/${address}`} className="btn btn-outline" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
+          <Link href={`/claim/${address}?chainId=${targetChainId}`} className="btn btn-outline" style={{ flex: 1, textAlign: "center", fontSize: 9, padding: "7px 0" }}>
             Claim
           </Link>
         </div>
@@ -205,29 +223,41 @@ export function GameCard({ address, version }: { address: string; version: strin
 }
 
 export default function HomeGallery() {
-  const { data: gamesDataV1 } = useReadContract({
-    address: FACTORY_ADDRESS as `0x${string}`,
+  const { data: gamesDataV1Base } = useReadContract({
+    address: FACTORY_ADDRESS_BASE ? (FACTORY_ADDRESS_BASE as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
+    chainId: base.id,
   });
 
-  const { data: gamesDataV2 } = useReadContracts({
-    contracts: FACTORY_ADDRESS_V2.map((addr) => ({
+  const { data: gamesDataV2Base } = useReadContracts({
+    contracts: FACTORY_ADDRESS_V2_BASE.map((addr) => ({
       address: addr,
       abi: FACTORY_ABI,
       functionName: "getGames",
+      chainId: base.id,
     })),
   });
 
-  const gamesV1 = (gamesDataV1 as string[]) || [];
-  const gamesV2 = gamesDataV2 
-    ? gamesDataV2.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
+  const { data: gamesDataV1Celo } = useReadContract({
+    address: FACTORY_ADDRESS_CELO ? (FACTORY_ADDRESS_CELO as `0x${string}`) : undefined,
+    abi: FACTORY_ABI,
+    functionName: "getGames",
+    chainId: celo.id,
+  });
+
+  const gamesV1Base = (gamesDataV1Base as string[]) || [];
+  const gamesV2Base = gamesDataV2Base 
+    ? gamesDataV2Base.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
     : [];
 
+  const gamesV1Celo = (gamesDataV1Celo as string[]) || [];
+
   const allGames = [
-    ...gamesV1.map(addr => ({ address: addr, version: "V1" })),
-    ...gamesV2.map(addr => ({ address: addr, version: "V2" })),
-    ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, version: "V2-SeaDrop" }))
+    ...gamesV1Base.map(addr => ({ address: addr, version: "V1", targetChainId: base.id })),
+    ...gamesV2Base.map(addr => ({ address: addr, version: "V2", targetChainId: base.id })),
+    ...gamesV1Celo.map(addr => ({ address: addr, version: "V1", targetChainId: celo.id })),
+    ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, version: "V2-SeaDrop", targetChainId: base.id }))
   ];
 
   return (
@@ -264,9 +294,9 @@ export default function HomeGallery() {
 
           <div className="hero-actions">
             <Link href="/how-to-play" className="btn btn-primary btn-large">How It Works</Link>
-            <Link href="/arena" className="btn btn-outline btn-large">
+            <a href="#games" className="btn btn-outline btn-large">
               Enter Arena
-            </Link>
+            </a>
           </div>
 
           <div className="hero-trust">
@@ -287,7 +317,7 @@ export default function HomeGallery() {
       </section>
 
       {/* ── Explorer Section ── */}
-      <section style={{ borderTop: "1px solid var(--border)" }}>
+      <section id="games" style={{ borderTop: "1px solid var(--border)" }}>
         <div style={{ padding: "32px 40px" }}>
           <div style={{ marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
@@ -312,7 +342,7 @@ export default function HomeGallery() {
                 No games found — deploy one from the Launch page
               </div>
             ) : (
-              allGames.map((g, i) => <GameCard key={i} address={g.address} version={g.version} />)
+              allGames.map((g, i) => <GameCard key={i} address={g.address} version={g.version} targetChainId={g.targetChainId} />)
             )}
           </div>
         </div>

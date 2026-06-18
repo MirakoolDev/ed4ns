@@ -134,6 +134,10 @@ body {
   display: flex;
   align-items: center;
   gap: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: var(--navbar-h);
 }
 
 .nav-link {
