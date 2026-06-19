@@ -276,7 +276,7 @@ export default function HomeGallery() {
             <div className="hero-step">
               <div className="hero-step-num">01</div>
               <div className="hero-step-label">Mint</div>
-              <div className="hero-step-desc">Mint during the open edition window. Your ETH funds the prize pool.</div>
+              <div className="hero-step-desc">Mint during the open edition window. Your payment funds the prize pool.</div>
             </div>
             <div className="hero-step-divider" />
             <div className="hero-step">

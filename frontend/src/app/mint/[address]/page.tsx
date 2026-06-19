@@ -13,7 +13,7 @@ import {
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
-import { getExplorerUrl, STANDALONE_GAMES } from "@/config";
+import { getExplorerUrl, STANDALONE_GAMES, nativeToken } from "@/config";
 
 const resolveGatewayUrl = (url: string): string => {
   if (!url) return "";
@@ -242,7 +242,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         <div className="stat-cell">
           <span className="stat-label">Mint Price</span>
           <span className="stat-value">{priceEth}</span>
-          <span className="stat-unit">ETH on {chainId === 42220 ? "Celo" : "Base"}</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 42220 ? "Celo" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Total Minted</span>
@@ -256,7 +256,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           <span className="stat-value">
             {prizePool ? Number(formatEther(prizePool as bigint)).toFixed(3) : "0.000"}
           </span>
-          <span className="stat-unit">ETH on {chainId === 42220 ? "Celo" : "Base"}</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 42220 ? "Celo" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Payout Split</span>
@@ -350,7 +350,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           <div className="mint-panel-section">
             <div className="mint-row">
               <span className="mint-row-label">Mint Price</span>
-              <span className="mint-row-value">{priceEth} ETH</span>
+              <span className="mint-row-value">{priceEth} {nativeToken(chainId)}</span>
             </div>
             <div className="mint-row">
               <span className="mint-row-label">Quantity</span>
@@ -403,7 +403,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                 className="mint-row-value"
                 style={{ fontSize: 18 }}
               >
-                {totalEth} ETH
+                {totalEth} {nativeToken(chainId)}
               </span>
             </div>
 

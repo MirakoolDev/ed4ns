@@ -14,7 +14,7 @@ import { formatEther } from "viem";
 import Link from "next/link";
 import { NFT_ABI } from "@/abi";
 import { computeAllStatuses } from "@/lib/gameEngine";
-import { getExplorerUrl } from "@/config";
+import { getExplorerUrl, nativeToken } from "@/config";
 
 interface WinningToken {
   id: number;
@@ -316,12 +316,12 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         <div className="stat-cell">
           <span className="stat-label">Prize Pool</span>
           <span className="stat-value">{formatEth(prizePool as bigint | undefined)}</span>
-          <span className="stat-unit">ETH total</span>
+          <span className="stat-unit">{nativeToken(chainId)} total</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Prize / Winner</span>
           <span className="stat-value">{formatEth(prizePerWinner as bigint | undefined)}</span>
-          <span className="stat-unit">ETH each</span>
+          <span className="stat-unit">{nativeToken(chainId)} each</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Survivors</span>
@@ -487,7 +487,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                       </td>
                       <td>
                         <span style={{ color: "var(--gold)", fontWeight: 700 }}>
-                          {formatEth(prizePerWinner as bigint | undefined)} ETH
+                          {formatEth(prizePerWinner as bigint | undefined)} {nativeToken(chainId)}
                         </span>
                       </td>
                       <td>
@@ -574,7 +574,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           {/* Info rows */}
           <div className="sidebar-row">
             <span className="sidebar-label">Total Pool</span>
-            <span className="sidebar-value">{formatEth(prizePool as bigint | undefined)} ETH</span>
+            <span className="sidebar-value">{formatEth(prizePool as bigint | undefined)} {nativeToken(chainId)}</span>
           </div>
           <div className="sidebar-row">
             <span className="sidebar-label">Winners share</span>

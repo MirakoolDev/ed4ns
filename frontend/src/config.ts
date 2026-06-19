@@ -29,3 +29,5 @@ export const getAlchemyNftUrl = (key: string, chainId?: number) => {
     if (chainId === 84532) return `https://base-sepolia.g.alchemy.com/nft/v3/${key}`;
     return `https://eth-sepolia.g.alchemy.com/nft/v3/${key}`;
 };
+
+export const nativeToken = (chainId?: number) => chainId === 42220 ? "CELO" : "ETH";

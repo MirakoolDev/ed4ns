@@ -5,7 +5,7 @@ import { useAccount, useChainId, useReadContract, useReadContracts, useWriteCont
 import { celo } from "wagmi/chains";
 import { parseEther, formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, AUTHORIZED_CREATOR, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, AUTHORIZED_CREATOR, getExplorerUrl, nativeToken } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { GameCard } from "../page";
 
@@ -517,7 +517,7 @@ export default function LaunchPage() {
                       color: "var(--text-muted)",
                     }}
                   >
-                    Mint Price (ETH)
+                    Mint Price ({nativeToken(chainId)})
                   </label>
                   <input
                     className="input"

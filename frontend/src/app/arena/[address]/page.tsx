@@ -13,7 +13,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import { formatEther } from "viem";
-import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl } from "@/config";
+import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl, nativeToken } from "@/config";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { computeAllStatuses, type TokenStatusMap } from "@/lib/gameEngine";
@@ -761,12 +761,12 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         <div className="stat-cell">
           <span className="stat-label">Prize Pool</span>
           <span className="stat-value">{formatEth(prizePool as bigint | undefined)}</span>
-          <span className="stat-unit">ETH</span>
+          <span className="stat-unit">{nativeToken(chainId)}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Prize / Winner</span>
           <span className="stat-value">{formatEth(prizePerWinner as bigint | undefined)}</span>
-          <span className="stat-unit">ETH each</span>
+          <span className="stat-unit">{nativeToken(chainId)} each</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Tokens</span>
@@ -881,7 +881,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                 color: "var(--gold)",
               }}
             >
-              Claim Prize — {formatEth(prizePerWinner as bigint | undefined)} ETH each
+              Claim Prize — {formatEth(prizePerWinner as bigint | undefined)} {nativeToken(chainId)} each
             </div>
             <div className="claim-tokens-list">
               {myWinners.map((t) => (

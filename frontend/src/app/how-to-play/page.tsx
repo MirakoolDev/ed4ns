@@ -33,7 +33,7 @@ const STEPS = [
   {
     num: "05",
     title: "Winners Claim the Prize Pool",
-    desc: `Each surviving token holder is entitled to an equal share of the total prize pool. Connect your wallet on the Arena page — if you hold a winner token, a Claim Prize button appears automatically. Prize is paid in ETH.`,
+    desc: `Each surviving token holder is entitled to an equal share of the total prize pool. Connect your wallet on the Arena page — if you hold a winner token, a Claim Prize button appears automatically. Prize is paid in the chain's native token (ETH on Base, CELO on Celo).`,
     callout:
       "prizePerWinner = totalPrizePool ÷ numberOfSurvivors. This is computed on-chain; there are no manual distributions.",
   },
@@ -58,7 +58,7 @@ const FAQ = [
   },
   {
     q: "How is the prize pool protected?",
-    a: "ETH is held in the contract. Only the artist can call emergencyWithdraw after the game finishes, and only for any residual dust. Actual prizes are claimable by token holders directly.",
+    a: "Funds are held in the contract. Only the artist can call emergencyWithdraw after the game finishes, and only for any residual dust. Actual prizes are claimable by token holders directly.",
   },
   {
     q: "Is there a deadline to claim?",
