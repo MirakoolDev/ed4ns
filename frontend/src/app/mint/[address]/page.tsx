@@ -9,7 +9,9 @@ import {
   useWaitForTransactionReceipt,
   useChainId,
   useSwitchChain,
+  useEnsName,
 } from "wagmi";
+import { mainnet } from "wagmi/chains";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
@@ -99,6 +101,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
       { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artistSharePercent", chainId },
       { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePoolSharePercent", chainId },
       { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePool", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artist", chainId },
     ],
     query: { refetchInterval: 5000 },
   });
@@ -113,6 +116,9 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   const artistShare = results?.[7]?.result as bigint | undefined;
   const poolShare = results?.[8]?.result as bigint | undefined;
   const prizePool = results?.[9]?.result as bigint | undefined;
+  const artistAddress = results?.[10]?.result as string | undefined;
+
+  const { data: ensName } = useEnsName({ address: artistAddress as `0x${string}` | undefined, chainId: mainnet.id });
 
   // Resolve artwork
   useEffect(() => {
@@ -343,7 +349,15 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           {/* Title block */}
           <div className="mint-panel-section">
             <div className="mint-title">{name || "Loading..."}</div>
-            <div className="mint-subtitle">{desc || "—"}</div>
+            {artistAddress && (
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 8 }}>
+                <span style={{ opacity: 0.6 }}>by </span>
+                <a href={getExplorerUrl(artistAddress, chainId)} target="_blank" rel="noopener noreferrer" className="address-link" style={{ color: "var(--text-primary)" }}>
+                  {ensName || `${artistAddress.slice(0, 6)}…${artistAddress.slice(-4)}`}
+                </a>
+              </div>
+            )}
+            <div className="mint-subtitle" style={{ marginTop: 16 }}>{desc || "—"}</div>
           </div>
 
           {/* Mint controls */}

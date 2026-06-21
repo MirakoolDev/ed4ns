@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import { base, celo } from "wagmi/chains";
+import { useChainId, useReadContract, useReadContracts, useChains, useEnsName } from "wagmi";
+import { mainnet, base, celo } from "wagmi/chains";
 import { formatEther } from "viem";
 import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_CELO, STANDALONE_GAMES, getExplorerUrl } from "@/config";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
@@ -29,6 +29,22 @@ const resolveGatewayUrl = (url: string): string => {
   return url;
 };
 
+// Stable RainbowKit CDN chain icon URLs
+const CHAIN_ICONS: Record<number, { url: string; bg: string }> = {
+  8453:  { url: "https://assets.coingecko.com/asset_platforms/images/131/small/base-network-logo.png", bg: "#0052FF" },
+  42220: { url: "https://assets.coingecko.com/coins/images/11090/small/InjXBNx9_400x400.jpg", bg: "#35D07F" },
+};
+
+function ArtistLabel({ address, chainId }: { address: string; chainId: number }) {
+  const { data: ensName } = useEnsName({ address: address as `0x${string}`, chainId: mainnet.id });
+  const display = ensName || `${address.slice(0, 6)}…${address.slice(-4)}`;
+  return (
+    <a href={getExplorerUrl(address, chainId)} target="_blank" rel="noopener noreferrer" className="address-link" onClick={(e) => e.stopPropagation()}>
+      {display}
+    </a>
+  );
+}
+
 export function GameCard({ address, version, targetChainId }: { address: string; version: string; targetChainId: number }) {
   const [, setTick] = useState(0);
   const [artworkUrl, setArtworkUrl] = useState("");
@@ -49,6 +65,7 @@ export function GameCard({ address, version, targetChainId }: { address: string;
       { address: address as `0x${string}`, abi: NFT_ABI, functionName: "mintingOpen", chainId: targetChainId },
       { address: address as `0x${string}`, abi: NFT_ABI, functionName: "name", chainId: targetChainId },
       { address: address as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI", chainId: targetChainId },
+      { address: address as `0x${string}`, abi: NFT_ABI, functionName: "artist", chainId: targetChainId },
     ],
     query: { refetchInterval: 10000 },
   });
@@ -62,6 +79,7 @@ export function GameCard({ address, version, targetChainId }: { address: string;
   const mintingOpen = results?.[6]?.result as boolean | undefined;
   const gameName = results?.[7]?.result as string | undefined;
   const artworkURI = results?.[8]?.result as string | undefined;
+  const artistAddress = results?.[9]?.result as string | undefined;
 
   // Resolve artwork
   useEffect(() => {
@@ -114,14 +132,15 @@ export function GameCard({ address, version, targetChainId }: { address: string;
             {version}
           </div>
           <div style={{
-            background: targetChainId === celo.id ? "rgba(252,255,82,0.9)" : "rgba(0,82,255,0.9)",
-            color: targetChainId === celo.id ? "black" : "white",
+            background: targetChainId === celo.id ? "rgba(252,255,82,0.85)" : "rgba(0,82,255,0.85)",
+            color: targetChainId === celo.id ? "#000" : "#fff",
             padding: "2px 6px",
             borderRadius: 4,
             fontSize: 8,
             fontFamily: "var(--font-mono)",
             fontWeight: 700,
             backdropFilter: "blur(4px)",
+            letterSpacing: "0.08em",
           }}>
             {targetChainId === celo.id ? "CELO" : "BASE"}
           </div>
@@ -168,25 +187,26 @@ export function GameCard({ address, version, targetChainId }: { address: string;
       <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
         {/* Name + address */}
         <div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "-0.02em", marginBottom: 2 }}>
+          {/* Name */}
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 6 }}>
             {gameName || "Untitled"}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+
+          {/* Single metadata row: creator left · contract right */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em" }}>
+              {artistAddress ? (
+                <><span style={{ opacity: 0.5 }}>by </span><ArtistLabel address={artistAddress} chainId={targetChainId} /></>
+              ) : <span style={{ opacity: 0.4 }}>—</span>}
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 3, fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", opacity: 0.7 }}>
               <a href={getExplorerUrl(address, targetChainId)} target="_blank" rel="noopener noreferrer" className="address-link" onClick={(e) => e.stopPropagation()}>
                 {address.slice(0, 6)}…{address.slice(-4)}
               </a>
+              <button onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(address); }} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--text-muted)", padding: 0, lineHeight: 1, display: "flex" }} title="Copy">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
             </span>
-            <button
-              onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(address); }}
-              style={{ cursor: "pointer", background: "none", border: "none", color: "var(--text-muted)", padding: 0, lineHeight: 1 }}
-              title="Copy Address"
-            >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
           </div>
         </div>
 
