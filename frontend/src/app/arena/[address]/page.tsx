@@ -810,7 +810,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         </div>
         {mintingOpen && (
           <a
-            href={`/mint/${address}`}
+            href={`/mint/${NFT_ADDRESS}?chainId=${chainId}`}
             style={{
               background: "rgba(0,0,0,0.2)",
               border: "1px solid rgba(255,255,255,0.2)",
