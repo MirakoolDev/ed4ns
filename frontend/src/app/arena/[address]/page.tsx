@@ -54,9 +54,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
   const walletChainId = useChainId();
-  const chainId = unwrappedSearchParams.chainId 
-    ? Number(unwrappedSearchParams.chainId) 
-    : (STANDALONE_GAMES.includes(NFT_ADDRESS as string) ? 8453 : walletChainId);
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
   const { switchChainAsync } = useSwitchChain();
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -1075,25 +1073,14 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           {!gridExpanded ? (
             <div className="action-panel" style={{ textAlign: "center", padding: "48px 24px", color: "var(--text-muted)", fontSize: 13, borderTop: "none", border: "1px solid var(--border)", background: "var(--bg-card)" }}>
               <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-                {chainId === 4663 || chainId === 46630 ? (
-                  <a 
-                    href={getExplorerUrl(NFT_ADDRESS as string, chainId)}
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="btn btn-outline"
-                  >
-                    View Collection on Explorer
-                  </a>
-                ) : (
-                  <a 
-                    href={openseaSlug ? `https://opensea.io/collection/${openseaSlug}` : `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="btn btn-outline"
-                  >
-                    View Collection on OpenSea
-                  </a>
-                )}
+                <a 
+                  href={openseaSlug ? `https://opensea.io/collection/${openseaSlug}` : `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="btn btn-outline"
+                >
+                  View Collection on OpenSea
+                </a>
                 <button className="btn btn-outline" onClick={() => setGridExpanded(true)}>Expand Token Grid</button>
               </div>
             </div>

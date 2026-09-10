@@ -29,9 +29,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
   const walletChainId = useChainId();
-  const chainId = unwrappedSearchParams.chainId 
-    ? Number(unwrappedSearchParams.chainId) 
-    : (STANDALONE_GAMES.includes(NFT_ADDRESS as string) ? 8453 : walletChainId);
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
   const { switchChainAsync } = useSwitchChain();
 
   // Dynamic OpenSea Redirect for standalone drops
