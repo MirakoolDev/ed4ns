@@ -54,7 +54,9 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
   const walletChainId = useChainId();
-  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const chainId = unwrappedSearchParams.chainId 
+    ? Number(unwrappedSearchParams.chainId) 
+    : (STANDALONE_GAMES.includes(NFT_ADDRESS as string) ? 8453 : walletChainId);
   const { switchChainAsync } = useSwitchChain();
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
