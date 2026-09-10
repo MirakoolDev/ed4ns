@@ -5,7 +5,7 @@ export const FACTORY_ADDRESS_BASE = "0x18c6FAa50C3a5e66C8E0EA02Aef9012Cb63095BF"
 export const FACTORY_ADDRESS_V2_BASE: `0x${string}`[] = ["0xe81Fb3F6b3b09Ddf7d6a101EF456F99101Ac1887"]; // Ed4nsFactoryV2 (V2) - Update after deployment
 
 
-export const FACTORY_ADDRESS_ROBINHOOD = "0xa37DA44dcaebA7776e9B8C12f14DBb0291e60387"; // Ed4nsFactory on Robinhood Testnet
+export const FACTORY_ADDRESS_ROBINHOOD = "0x009245A58fbF48C46243424a28C033fA908c2457"; // Ed4nsFactory on Robinhood Mainnet
 
 export const PROTOCOL_ADDRESS = "0xa0a6e5C0F17DA5e5337C9CD5bf353C61BA375c0D"; // 10% fee recipient
 export const STANDALONE_GAMES = ["0x99b9311f3b3C2f724c45DDB371A7B9b9b7DFF2F5"];
