@@ -34,11 +34,11 @@ export default function AdminPage() {
     address: FACTORY_ADDRESS_ROBINHOOD ? (FACTORY_ADDRESS_ROBINHOOD as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
-    chainId: 46630
+    chainId: 4663
   });
 
   const allGames = [
-    ...(robinhoodGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: 46630 })),
+    ...(robinhoodGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: 4663 })),
     ...(v1BaseGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: base.id })),
     ...(v2BaseGames?.flatMap(res => res.status === 'success' ? (res.result as string[]) : []) || []).map(addr => ({ address: addr, version: "V2", targetChainId: base.id })),
     ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, version: "V2-SeaDrop", targetChainId: base.id }))
@@ -136,7 +136,7 @@ function AdminGameRow({ game, isHidden, onToggle, isSaving }: { game: any, isHid
           {name as string || "Untitled Game"}
         </div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-          {game.address} • {game.targetChainId === 46630 ? "Robinhood" : "Base"} • {game.version}
+          {game.address} • {game.targetChainId === 4663 ? "Robinhood" : "Base"} • {game.version}
         </div>
       </div>
       

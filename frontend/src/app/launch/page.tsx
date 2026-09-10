@@ -195,7 +195,7 @@ export default function LaunchPage() {
   const canCreate = true;
 
   useEffect(() => {
-    if (!isAdmin || chainId === 46630) {
+    if (!isAdmin || chainId === 4663) {
       setFactoryVersion("V1");
     }
   }, [isAdmin, chainId]);
@@ -206,8 +206,8 @@ export default function LaunchPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 5000);
   };
 
-  const currentFactoryV1 = chainId === 46630 ? FACTORY_ADDRESS_ROBINHOOD : FACTORY_ADDRESS_BASE;
-  const currentFactoryV2Array = chainId === 46630 ? [] : FACTORY_ADDRESS_V2_BASE;
+  const currentFactoryV1 = chainId === 4663 ? FACTORY_ADDRESS_ROBINHOOD : FACTORY_ADDRESS_BASE;
+  const currentFactoryV2Array = chainId === 4663 ? [] : FACTORY_ADDRESS_V2_BASE;
   const currentFactoryV2 = Array.isArray(currentFactoryV2Array) ? currentFactoryV2Array[currentFactoryV2Array.length - 1] : currentFactoryV2Array;
 
   const targetFactory = factoryVersion === "V1" ? currentFactoryV1 : currentFactoryV2;
@@ -434,7 +434,7 @@ export default function LaunchPage() {
               </div>
 
               {/* Version Selector */}
-              {isAdmin && chainId !== 46630 && (
+              {isAdmin && chainId !== 4663 && (
                 <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                   <button 
                     className={`btn ${factoryVersion === "V1" ? "btn-primary" : "btn-outline"}`} 

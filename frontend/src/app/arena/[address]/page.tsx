@@ -258,7 +258,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   useEffect(() => {
     const fetchPlayers = async () => {
       const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
-      const isAlchemySupported = chainId === 4663 || chainId === 46630 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
+      const isAlchemySupported = chainId === 4663 || chainId === 4663 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
       
       if (alchemyKey && userAddress && isAlchemySupported) {
         try {
@@ -412,7 +412,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
         const contractAddr = NFT_ADDRESS.toLowerCase();
 
-        if (alchemyKey && (chainId === 4663 || chainId === 46630 || chainId === 8453 || chainId === 84532 || chainId === 11155111)) {
+        if (alchemyKey && (chainId === 4663 || chainId === 4663 || chainId === 8453 || chainId === 84532 || chainId === 11155111)) {
           // Alchemy: single paginated call, no block range issues
           const alchemyUrl = getAlchemyUrl(alchemyKey, chainId);
           let alchemySuccess = false;
@@ -789,7 +789,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         <span className="breadcrumb-sep">/</span>
         <span>Round {roundCount?.toString() ?? "0"}</span>
         <div style={{
-          background: chainId === 46630 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
+          background: chainId === 4663 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
           color: "white",
           padding: "2px 6px",
           borderRadius: 4,
@@ -798,7 +798,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           fontWeight: 700,
           marginLeft: "auto"
         }}>
-          {chainId === 46630 ? "ROBINHOOD" : "BASE"}
+          {chainId === 4663 ? "ROBINHOOD" : "BASE"}
         </div>
       </div>
 
@@ -927,7 +927,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                     isMiningCut
                   }
                 >
-                  {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 46630 ? "Robinhood" : "Base"}` : isMiningCut
+                  {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 4663 ? "Robinhood" : "Base"}` : isMiningCut
                     ? "Confirming…"
                     : isSubmittingCut
                     ? "Broadcasting…"

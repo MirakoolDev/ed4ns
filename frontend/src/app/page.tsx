@@ -105,7 +105,7 @@ export function GameCard({ address, version, targetChainId }: { address: string;
             {version}
           </div>
           <div style={{
-            background: targetChainId === 46630 ? "rgba(0,192,135,0.85)" : "rgba(0,82,255,0.85)",
+            background: targetChainId === 4663 ? "rgba(0,192,135,0.85)" : "rgba(0,82,255,0.85)",
             color: "#fff",
             padding: "2px 6px",
             borderRadius: 4,
@@ -115,7 +115,7 @@ export function GameCard({ address, version, targetChainId }: { address: string;
             backdropFilter: "blur(4px)",
             letterSpacing: "0.08em",
           }}>
-            {targetChainId === 46630 ? "ROBINHOOD" : "BASE"}
+            {targetChainId === 4663 ? "ROBINHOOD" : "BASE"}
           </div>
         </div>
         {artworkUrl ? (
@@ -242,11 +242,11 @@ export default function HomeGallery() {
     address: FACTORY_ADDRESS_ROBINHOOD ? (FACTORY_ADDRESS_ROBINHOOD as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
-    chainId: 46630
+    chainId: 4663
   });
 
   const allGames = [
-    ...(robinhoodGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: 46630 })),
+    ...(robinhoodGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: 4663 })),
     ...(v1BaseGames as string[] || []).map(addr => ({ address: addr, version: "V1", targetChainId: base.id })),
     ...(v2BaseGames?.flatMap(res => res.status === 'success' ? (res.result as string[]) : []) || []).map(addr => ({ address: addr, version: "V2", targetChainId: base.id })),
     ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, version: "V2-SeaDrop", targetChainId: base.id }))

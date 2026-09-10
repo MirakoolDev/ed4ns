@@ -219,7 +219,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           </>
         )}
         <div style={{
-          background: chainId === 46630 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
+          background: chainId === 4663 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
           color: "white",
           padding: "2px 6px",
           borderRadius: 4,
@@ -228,7 +228,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           fontWeight: 700,
           marginLeft: "auto"
         }}>
-          {chainId === 46630 ? "ROBINHOOD" : "BASE"}
+          {chainId === 4663 ? "ROBINHOOD" : "BASE"}
         </div>
       </div>
 
@@ -237,7 +237,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         <div className="stat-cell">
           <span className="stat-label">Mint Price</span>
           <span className="stat-value">{priceEth}</span>
-          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 46630 ? "Robinhood" : "Base"}</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 4663 ? "Robinhood" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Total Minted</span>
@@ -251,7 +251,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
           <span className="stat-value">
             {prizePool ? parseFloat(Number(formatEther(prizePool as bigint)).toFixed(4)) : "0"}
           </span>
-          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 46630 ? "Robinhood" : "Base"}</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 4663 ? "Robinhood" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Payout Split</span>
@@ -453,7 +453,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                 {!userAddress
                   ? "Connect Wallet"
                   : walletChainId !== chainId
-                  ? `Switch to ${chainId === 46630 ? "Robinhood" : "Base"}`
+                  ? `Switch to ${chainId === 4663 ? "Robinhood" : "Base"}`
                   : !isOpen
                   ? "Starting Soon…"
                   : isMiningMint

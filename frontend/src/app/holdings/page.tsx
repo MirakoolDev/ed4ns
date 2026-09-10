@@ -305,7 +305,7 @@ export default function HoldingsPage() {
     address: FACTORY_ADDRESS_ROBINHOOD ? (FACTORY_ADDRESS_ROBINHOOD as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
-    chainId: 46630,
+    chainId: 4663,
   });
 
   const gamesV1Base = (gamesDataV1Base as string[]) || [];
@@ -317,7 +317,7 @@ export default function HoldingsPage() {
   const allGames = [
     ...gamesV1Base.map(addr => ({ address: addr, chainId: base.id })),
     ...gamesV2Base.map(addr => ({ address: addr, chainId: base.id })),
-    ...gamesV1Robinhood.map(addr => ({ address: addr, chainId: 46630 })),
+    ...gamesV1Robinhood.map(addr => ({ address: addr, chainId: 4663 })),
     ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, chainId: base.id })),
   ];
 

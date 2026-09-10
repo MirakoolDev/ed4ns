@@ -18,7 +18,7 @@ export function Navbar() {
   const chainId = useChainId();
 
   const isCreator = !!address && address.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
-  const showLaunch = isCreator || (!!address && chainId === 46630);
+  const showLaunch = isCreator || (!!address && chainId === 4663);
 
   return (
     <header className="navbar">
