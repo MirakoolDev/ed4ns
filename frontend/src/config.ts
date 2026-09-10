@@ -8,7 +8,14 @@ export const FACTORY_ADDRESS_V2_BASE: `0x${string}`[] = ["0xe81Fb3F6b3b09Ddf7d6a
 export const FACTORY_ADDRESS_ROBINHOOD = "0x009245A58fbF48C46243424a28C033fA908c2457"; // Ed4nsFactory on Robinhood Mainnet
 
 export const PROTOCOL_ADDRESS = "0xa0a6e5C0F17DA5e5337C9CD5bf353C61BA375c0D"; // 10% fee recipient
-export const STANDALONE_GAMES = ["0x99b9311f3b3C2f724c45DDB371A7B9b9b7DFF2F5"];
+export const STANDALONE_GAMES = [
+  "0x99b9311f3b3C2f724c45DDB371A7B9b9b7DFF2F5",
+  "0x78f1A922bA0b1664725F069c7c22B1D0853f90ea" // Let's Fly PFWA
+];
+
+export const OPENSEA_SLUG_MAP: Record<string, string> = {
+  "0x78f1A922bA0b1664725F069c7c22B1D0853f90ea": "lets-fly-pfwa",
+};
 // The only wallet allowed to see the deploy form on the /launch page
 export const AUTHORIZED_CREATOR = "0x420944b441715E34Dd672AE0Eb4526A7AD7d1EEF"; // Update to your wallet
 

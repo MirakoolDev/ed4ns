@@ -15,7 +15,7 @@ import { mainnet } from "wagmi/chains";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
-import { getExplorerUrl, STANDALONE_GAMES, nativeToken, artworkImageSrc } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_ROBINHOOD, STANDALONE_GAMES, OPENSEA_SLUG_MAP, getExplorerUrl, nativeToken, artworkImageSrc } from "@/config";
 
 interface MintEvent {
   address: string;
@@ -35,7 +35,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   // Dynamic OpenSea Redirect for standalone drops
   useEffect(() => {
     if (STANDALONE_GAMES.includes(NFT_ADDRESS)) {
-      const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`);
+      const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`) || OPENSEA_SLUG_MAP[NFT_ADDRESS as string];
       if (slug) {
         window.location.href = `https://opensea.io/collection/${slug}/overview`;
         return;

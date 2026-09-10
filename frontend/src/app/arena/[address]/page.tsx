@@ -13,7 +13,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import { formatEther, parseEther, parseAbi } from "viem";
-import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl, nativeToken, artworkImageSrc } from "@/config";
+import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl, nativeToken, artworkImageSrc, OPENSEA_SLUG_MAP } from "@/config";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { computeAllStatuses, type TokenStatusMap } from "@/lib/gameEngine";
@@ -70,7 +70,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const slug = localStorage.getItem(`os_slug_${NFT_ADDRESS}`);
+      const slug = localStorage.getItem(`os_slug_${NFT_ADDRESS}`) || OPENSEA_SLUG_MAP[NFT_ADDRESS as string];
       if (slug) setOpenseaSlug(slug);
     }
     
