@@ -1078,6 +1078,9 @@ body {
   .navbar-nav {
     display: none;
   }
+  .hide-on-mobile {
+    display: none !important;
+  }
   .hero-steps {
     flex-direction: column !important;
     gap: 0 !important;

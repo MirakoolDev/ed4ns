@@ -36,7 +36,8 @@ export function Navbar() {
           letterSpacing: "0.05em",
           marginLeft: "4px",
           display: "flex",
-          alignItems: "center"
+          alignItems: "center",
+          whiteSpace: "nowrap"
         }}>
           by $pfwa
         </span>
@@ -77,7 +78,7 @@ export function Navbar() {
           href="https://www.ponsfamily.com/launchpad/0xa934bA4F59070149d37A93F8A002Af79BAe35563"
           target="_blank"
           rel="noopener noreferrer"
-          className="btn"
+          className="btn hide-on-mobile"
           style={{
             background: "rgba(0, 255, 136, 0.05)",
             border: "1px solid rgba(0, 255, 136, 0.2)",
