@@ -16,8 +16,8 @@ contract Ed4nsFactory {
 
     address public immutable implementation; // the master ed4ns contract
 
-    uint256 public prizePoolSharePercent = 45;
-    uint256 public artistSharePercent    = 45;
+    uint256 public prizePoolSharePercent = 70;
+    uint256 public artistSharePercent    = 20;
     uint256 public protocolSharePercent  = 10;
 
     address[] private _games;
@@ -40,13 +40,15 @@ contract Ed4nsFactory {
 
     // ─── Constructor ─────────────────────────────────────────────────────────
     /// @param _protocol  Wallet receiving the protocol share of every mint.
-    constructor(address payable _protocol) {
+    /// @param _dice      Address of the Dice Entropy contract
+    /// @param _diceProvider Address of the Dice Provider
+    constructor(address payable _protocol, address _dice, address _diceProvider) {
         require(_protocol != address(0), "Invalid protocol");
         owner    = msg.sender;
         protocol = _protocol;
 
         // Deploy the implementation once — it is locked (initialized=true in its constructor)
-        implementation = address(new ed4ns());
+        implementation = address(new ed4ns(_dice, _diceProvider));
     }
 
     // ─── Protocol Management ─────────────────────────────────────────────────

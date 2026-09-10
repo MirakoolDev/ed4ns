@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { AUTHORIZED_CREATOR } from "@/config";
 
 const NAV_LINKS = [
@@ -15,8 +15,10 @@ const NAV_LINKS = [
 export function Navbar() {
   const pathname = usePathname();
   const { address } = useAccount();
+  const chainId = useChainId();
 
   const isCreator = !!address && address.toLowerCase() === AUTHORIZED_CREATOR.toLowerCase();
+  const showLaunch = isCreator || (!!address && chainId === 46630);
 
   return (
     <header className="navbar">
@@ -24,11 +26,25 @@ export function Navbar() {
       <Link href="/" className="navbar-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <img src="/logo.svg" alt="ed4ns logo" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
         <span style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "16px" }}>ed4ns</span>
+        <span style={{
+          border: "1px solid rgba(255,255,255,0.1)",
+          color: "rgba(255,255,255,0.5)",
+          fontSize: "10px",
+          padding: "2px 6px",
+          borderRadius: "4px",
+          fontFamily: "var(--font-mono)",
+          letterSpacing: "0.05em",
+          marginLeft: "4px",
+          display: "flex",
+          alignItems: "center"
+        }}>
+          by $pfwa
+        </span>
       </Link>
 
       {/* Nav links */}
       <nav className="navbar-nav">
-        {isCreator && (
+        {showLaunch && (
           <Link
             href="/launch"
             className={`nav-link ${pathname === "/launch" ? "active" : ""}`}
@@ -45,10 +61,38 @@ export function Navbar() {
             {link.label}
           </Link>
         ))}
+        {isCreator && (
+          <Link
+            href="/admin"
+            className={`nav-link ${pathname === "/admin" ? "active" : ""}`}
+          >
+            Admin
+          </Link>
+        )}
       </nav>
 
-      {/* Wallet connect */}
-      <ConnectButton.Custom>
+      {/* Right Actions */}
+      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <a
+          href="https://www.ponsfamily.com/launchpad/0xa934bA4F59070149d37A93F8A002Af79BAe35563"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn"
+          style={{
+            background: "rgba(0, 255, 136, 0.05)",
+            border: "1px solid rgba(0, 255, 136, 0.2)",
+            color: "var(--green)",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            padding: "8px 16px",
+            textDecoration: "none"
+          }}
+        >
+          $PFWA
+        </a>
+        <ConnectButton.Custom>
         {({
           account,
           chain,
@@ -107,19 +151,50 @@ export function Navbar() {
                   );
                 }
                 return (
-                  <button
-                    onClick={openAccountModal}
-                    type="button"
-                    className="btn btn-outline"
-                  >
-                    {account.displayName}
-                  </button>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button
+                      onClick={openChainModal}
+                      style={{ display: 'flex', alignItems: 'center' }}
+                      type="button"
+                      className="btn btn-outline"
+                    >
+                      {chain.hasIcon && (
+                        <div
+                          style={{
+                            background: chain.iconBackground,
+                            width: 12,
+                            height: 12,
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                            marginRight: 4,
+                          }}
+                        >
+                          {chain.iconUrl && (
+                            <img
+                              alt={chain.name ?? 'Chain icon'}
+                              src={chain.iconUrl}
+                              style={{ width: 12, height: 12 }}
+                            />
+                          )}
+                        </div>
+                      )}
+                      {chain.name}
+                    </button>
+                    <button
+                      onClick={openAccountModal}
+                      type="button"
+                      className="btn btn-outline"
+                    >
+                      {account.displayName}
+                    </button>
+                  </div>
                 );
               })()}
             </div>
           );
         }}
       </ConnectButton.Custom>
+      </div>
     </header>
   );
 }

@@ -1,13 +1,13 @@
 // Sources flattened with hardhat v2.28.6 https://hardhat.org
 
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 AND MIT
 
 // File @openzeppelin/contracts/utils/introspection/IERC165.sol@v4.9.6
 
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -31,39 +31,12 @@ interface IERC165 {
 }
 
 
-// File @openzeppelin/contracts/interfaces/IERC2981.sol@v4.9.6
-
-// Original license: SPDX_License_Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.9.0) (interfaces/IERC2981.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Interface for the NFT Royalty Standard.
- *
- * A standardized way to retrieve royalty payment information for non-fungible tokens (NFTs) to enable universal
- * support for royalty payments across all NFT marketplaces and ecosystem participants.
- *
- * _Available since v4.5._
- */
-interface IERC2981 is IERC165 {
-    /**
-     * @dev Returns how much royalty is owed and to whom, based on a sale price that may be denominated in any unit of
-     * exchange. The royalty amount is denominated and should be paid in that same unit of exchange.
-     */
-    function royaltyInfo(
-        uint256 tokenId,
-        uint256 salePrice
-    ) external view returns (address receiver, uint256 royaltyAmount);
-}
-
-
 // File @openzeppelin/contracts/token/ERC721/IERC721.sol@v4.9.6
 
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (token/ERC721/IERC721.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Required interface of an ERC721 compliant contract.
@@ -197,7 +170,7 @@ interface IERC721 is IERC165 {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (token/ERC721/extensions/IERC721Metadata.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @title ERC-721 Non-Fungible Token Standard, optional metadata extension
@@ -226,7 +199,7 @@ interface IERC721Metadata is IERC721 {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0) (token/ERC721/IERC721Receiver.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @title ERC721 token receiver interface
@@ -257,7 +230,7 @@ interface IERC721Receiver {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (utils/Address.sol)
 
-pragma solidity ^0.8.1;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Collection of functions related to the address type
@@ -505,7 +478,7 @@ library Address {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.4) (utils/Context.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -537,7 +510,7 @@ abstract contract Context {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (utils/introspection/ERC165.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Implementation of the {IERC165} interface.
@@ -568,7 +541,7 @@ abstract contract ERC165 is IERC165 {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (utils/math/Math.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Standard math utilities missing in the Solidity language.
@@ -911,7 +884,7 @@ library Math {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.8.0) (utils/math/SignedMath.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Standard signed math utilities missing in the Solidity language.
@@ -958,7 +931,7 @@ library SignedMath {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (utils/Strings.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 
 /**
@@ -1045,7 +1018,7 @@ library Strings {
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (token/ERC721/ERC721.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 
 
@@ -1508,104 +1481,12 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
 }
 
 
-// File @openzeppelin/contracts/proxy/Clones.sol@v4.9.6
-
-// Original license: SPDX_License_Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.9.0) (proxy/Clones.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev https://eips.ethereum.org/EIPS/eip-1167[EIP 1167] is a standard for
- * deploying minimal proxy contracts, also known as "clones".
- *
- * > To simply and cheaply clone contract functionality in an immutable way, this standard specifies
- * > a minimal bytecode implementation that delegates all calls to a known, fixed address.
- *
- * The library includes functions to deploy a proxy using either `create` (traditional deployment) or `create2`
- * (salted deterministic deployment). It also includes functions to predict the addresses of clones deployed using the
- * deterministic method.
- *
- * _Available since v3.4._
- */
-library Clones {
-    /**
-     * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
-     *
-     * This function uses the create opcode, which should never revert.
-     */
-    function clone(address implementation) internal returns (address instance) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Cleans the upper 96 bits of the `implementation` word, then packs the first 3 bytes
-            // of the `implementation` address with the bytecode before the address.
-            mstore(0x00, or(shr(0xe8, shl(0x60, implementation)), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000))
-            // Packs the remaining 17 bytes of `implementation` with the bytecode after the address.
-            mstore(0x20, or(shl(0x78, implementation), 0x5af43d82803e903d91602b57fd5bf3))
-            instance := create(0, 0x09, 0x37)
-        }
-        require(instance != address(0), "ERC1167: create failed");
-    }
-
-    /**
-     * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
-     *
-     * This function uses the create2 opcode and a `salt` to deterministically deploy
-     * the clone. Using the same `implementation` and `salt` multiple time will revert, since
-     * the clones cannot be deployed twice at the same address.
-     */
-    function cloneDeterministic(address implementation, bytes32 salt) internal returns (address instance) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Cleans the upper 96 bits of the `implementation` word, then packs the first 3 bytes
-            // of the `implementation` address with the bytecode before the address.
-            mstore(0x00, or(shr(0xe8, shl(0x60, implementation)), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000))
-            // Packs the remaining 17 bytes of `implementation` with the bytecode after the address.
-            mstore(0x20, or(shl(0x78, implementation), 0x5af43d82803e903d91602b57fd5bf3))
-            instance := create2(0, 0x09, 0x37, salt)
-        }
-        require(instance != address(0), "ERC1167: create2 failed");
-    }
-
-    /**
-     * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
-     */
-    function predictDeterministicAddress(
-        address implementation,
-        bytes32 salt,
-        address deployer
-    ) internal pure returns (address predicted) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            let ptr := mload(0x40)
-            mstore(add(ptr, 0x38), deployer)
-            mstore(add(ptr, 0x24), 0x5af43d82803e903d91602b57fd5bf3ff)
-            mstore(add(ptr, 0x14), implementation)
-            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
-            mstore(add(ptr, 0x58), salt)
-            mstore(add(ptr, 0x78), keccak256(add(ptr, 0x0c), 0x37))
-            predicted := keccak256(add(ptr, 0x43), 0x55)
-        }
-    }
-
-    /**
-     * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
-     */
-    function predictDeterministicAddress(
-        address implementation,
-        bytes32 salt
-    ) internal view returns (address predicted) {
-        return predictDeterministicAddress(implementation, salt, address(this));
-    }
-}
-
-
 // File @openzeppelin/contracts/utils/Base64.sol@v4.9.6
 
 // Original license: SPDX_License_Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.6) (utils/Base64.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Provides a set of functions to operate with Base64 strings.
@@ -1705,1150 +1586,52 @@ library Base64 {
 }
 
 
-// File contracts/interfaces/ISeaDropTokenContractMetadata.sol
+// File contracts/interfaces/DiceInterfaces.sol
 
-// Original license: SPDX_License_Identifier: MIT
-pragma solidity >=0.8.17;
+// Original license: SPDX_License_Identifier: Apache-2.0
+pragma solidity ^0.8.24;
 
-interface ISeaDropTokenContractMetadata is IERC2981 {
-    /**
-     * @notice Throw if the max supply exceeds uint64, a limit
-     *         due to the storage of bit-packed variables in ERC721A.
-     */
-    error CannotExceedMaxSupplyOfUint64(uint256 newMaxSupply);
+abstract contract IEntropyConsumer {
+    error EntropyErrorUnauthorizedCaller();
 
-    /**
-     * @notice Throw if the max supply exceeds the total minted.
-     */
-    error NewMaxSupplyCannotBeLessThenTotalMinted(
-        uint256 got,
-        uint256 totalMinted
-    );
+    /// @notice This method is called by the Entropy contract when a random number is generated.
+    /// @param sequenceNumber The sequence number of the request.
+    /// @param provider The address of the provider that generated the random number.
+    /// @param randomNumber The generated random number.
+    function entropyCallback(
+        uint64 sequenceNumber,
+        address provider,
+        bytes32 randomNumber
+    ) internal virtual;
 
-    /**
-     * @dev Revert with an error when attempting to set the provenance
-     *      hash after the mint has started.
-     */
-    error ProvenanceHashCannotBeSetAfterMintStarted();
-
-    /**
-     * @dev Revert if the royalty basis points is greater than 10_000.
-     */
-    error InvalidRoyaltyBasisPoints(uint256 basisPoints);
-
-    /**
-     * @dev Revert if the royalty address is being set to the zero address.
-     */
-    error RoyaltyAddressCannotBeZeroAddress();
-
-    /**
-     * @dev Emit an event for token metadata reveals/updates,
-     *      according to EIP-4906.
-     *
-     * @param _fromTokenId The start token id.
-     * @param _toTokenId   The end token id.
-     */
-    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
-
-    /**
-     * @dev Emit an event when the URI for the collection-level metadata
-     *      is updated.
-     */
-    event ContractURIUpdated(string newContractURI);
-
-    /**
-     * @dev Emit an event when the max token supply is updated.
-     */
-    event MaxSupplyUpdated(uint256 newMaxSupply);
-
-    /**
-     * @dev Emit an event with the previous and new provenance hash after
-     *      being updated.
-     */
-    event ProvenanceHashUpdated(bytes32 previousHash, bytes32 newHash);
-
-    /**
-     * @dev Emit an event when the royalties info is updated.
-     */
-    event RoyaltyInfoUpdated(address receiver, uint256 bps);
-
-    /**
-     * @notice A struct defining royalty info for the contract.
-     */
-    struct RoyaltyInfo {
-        address royaltyAddress;
-        uint96 royaltyBps;
+    /// @notice This method is called by the Entropy contract to deliver the random number.
+    /// It should revert if the caller is not the Entropy contract.
+    function _entropyCallback(
+        uint64 sequenceNumber,
+        address provider,
+        bytes32 randomNumber
+    ) external {
+        if (msg.sender != getEntropy()) revert EntropyErrorUnauthorizedCaller();
+        entropyCallback(sequenceNumber, provider, randomNumber);
     }
 
-    /**
-     * @notice Sets the base URI for the token metadata and emits an event.
-     *
-     * @param tokenURI The new base URI to set.
-     */
-    function setBaseURI(string calldata tokenURI) external;
+    /// @notice Returns the address of the Entropy contract.
+    function getEntropy() internal view virtual returns (address);
+}
 
-    /**
-     * @notice Sets the contract URI for contract metadata.
-     *
-     * @param newContractURI The new contract URI.
-     */
-    function setContractURI(string calldata newContractURI) external;
+interface IEntropy {
+    function requestV2(
+        address provider,
+        bytes32 userRandomNumber,
+        uint32 gasLimit
+    ) external payable returns (uint64 sequenceNumber);
 
-    /**
-     * @notice Sets the max supply and emits an event.
-     *
-     * @param newMaxSupply The new max supply to set.
-     */
-    function setMaxSupply(uint256 newMaxSupply) external;
-
-    /**
-     * @notice Sets the provenance hash and emits an event.
-     *
-     *         The provenance hash is used for random reveals, which
-     *         is a hash of the ordered metadata to show it has not been
-     *         modified after mint started.
-     *
-     *         This function will revert after the first item has been minted.
-     *
-     * @param newProvenanceHash The new provenance hash to set.
-     */
-    function setProvenanceHash(bytes32 newProvenanceHash) external;
-
-    /**
-     * @notice Sets the address and basis points for royalties.
-     *
-     * @param newInfo The struct to configure royalties.
-     */
-    function setRoyaltyInfo(RoyaltyInfo calldata newInfo) external;
-
-    /**
-     * @notice Returns the base URI for token metadata.
-     */
-    function baseURI() external view returns (string memory);
-
-    /**
-     * @notice Returns the contract URI.
-     */
-    function contractURI() external view returns (string memory);
-
-    /**
-     * @notice Returns the max token supply.
-     */
-    function maxSupply() external view returns (uint256);
-
-    /**
-     * @notice Returns the provenance hash.
-     *         The provenance hash is used for random reveals, which
-     *         is a hash of the ordered metadata to show it is unmodified
-     *         after mint has started.
-     */
-    function provenanceHash() external view returns (bytes32);
-
-    /**
-     * @notice Returns the address that receives royalties.
-     */
-    function royaltyAddress() external view returns (address);
-
-    /**
-     * @notice Returns the royalty basis points out of 10_000.
-     */
-    function royaltyBasisPoints() external view returns (uint256);
+    function getFee(address provider) external view returns (uint256 fee);
+    function getFeeV2(address provider, uint32 gasLimit) external view returns (uint128 feeAmount);
 }
 
 
-// File contracts/lib/SeaDropStructs.sol
-
-// Original license: SPDX_License_Identifier: MIT
-pragma solidity >=0.8.17;
-
-/**
- * @notice A struct defining public drop data.
- *         Designed to fit efficiently in one storage slot.
- * 
- * @param mintPrice                The mint price per token. (Up to 1.2m
- *                                 of native token, e.g. ETH, MATIC)
- * @param startTime                The start time, ensure this is not zero.
- * @param endTIme                  The end time, ensure this is not zero.
- * @param maxTotalMintableByWallet Maximum total number of mints a user is
- *                                 allowed. (The limit for this field is
- *                                 2^16 - 1)
- * @param feeBps                   Fee out of 10_000 basis points to be
- *                                 collected.
- * @param restrictFeeRecipients    If false, allow any fee recipient;
- *                                 if true, check fee recipient is allowed.
- */
-struct PublicDrop {
-    uint80 mintPrice; // 80/256 bits
-    uint48 startTime; // 128/256 bits
-    uint48 endTime; // 176/256 bits
-    uint16 maxTotalMintableByWallet; // 224/256 bits
-    uint16 feeBps; // 240/256 bits
-    bool restrictFeeRecipients; // 248/256 bits
-}
-
-/**
- * @notice A struct defining token gated drop stage data.
- *         Designed to fit efficiently in one storage slot.
- * 
- * @param mintPrice                The mint price per token. (Up to 1.2m 
- *                                 of native token, e.g.: ETH, MATIC)
- * @param maxTotalMintableByWallet Maximum total number of mints a user is
- *                                 allowed. (The limit for this field is
- *                                 2^16 - 1)
- * @param startTime                The start time, ensure this is not zero.
- * @param endTime                  The end time, ensure this is not zero.
- * @param dropStageIndex           The drop stage index to emit with the event
- *                                 for analytical purposes. This should be 
- *                                 non-zero since the public mint emits
- *                                 with index zero.
- * @param maxTokenSupplyForStage   The limit of token supply this stage can
- *                                 mint within. (The limit for this field is
- *                                 2^16 - 1)
- * @param feeBps                   Fee out of 10_000 basis points to be
- *                                 collected.
- * @param restrictFeeRecipients    If false, allow any fee recipient;
- *                                 if true, check fee recipient is allowed.
- */
-struct TokenGatedDropStage {
-    uint80 mintPrice; // 80/256 bits
-    uint16 maxTotalMintableByWallet; // 96/256 bits
-    uint48 startTime; // 144/256 bits
-    uint48 endTime; // 192/256 bits
-    uint8 dropStageIndex; // non-zero. 200/256 bits
-    uint32 maxTokenSupplyForStage; // 232/256 bits
-    uint16 feeBps; // 248/256 bits
-    bool restrictFeeRecipients; // 256/256 bits
-}
-
-/**
- * @notice A struct defining mint params for an allow list.
- *         An allow list leaf will be composed of `msg.sender` and
- *         the following params.
- * 
- *         Note: Since feeBps is encoded in the leaf, backend should ensure
- *         that feeBps is acceptable before generating a proof.
- * 
- * @param mintPrice                The mint price per token.
- * @param maxTotalMintableByWallet Maximum total number of mints a user is
- *                                 allowed.
- * @param startTime                The start time, ensure this is not zero.
- * @param endTime                  The end time, ensure this is not zero.
- * @param dropStageIndex           The drop stage index to emit with the event
- *                                 for analytical purposes. This should be
- *                                 non-zero since the public mint emits with
- *                                 index zero.
- * @param maxTokenSupplyForStage   The limit of token supply this stage can
- *                                 mint within.
- * @param feeBps                   Fee out of 10_000 basis points to be
- *                                 collected.
- * @param restrictFeeRecipients    If false, allow any fee recipient;
- *                                 if true, check fee recipient is allowed.
- */
-struct MintParams {
-    uint256 mintPrice; 
-    uint256 maxTotalMintableByWallet;
-    uint256 startTime;
-    uint256 endTime;
-    uint256 dropStageIndex; // non-zero
-    uint256 maxTokenSupplyForStage;
-    uint256 feeBps;
-    bool restrictFeeRecipients;
-}
-
-/**
- * @notice A struct defining token gated mint params.
- * 
- * @param allowedNftToken    The allowed nft token contract address.
- * @param allowedNftTokenIds The token ids to redeem.
- */
-struct TokenGatedMintParams {
-    address allowedNftToken;
-    uint256[] allowedNftTokenIds;
-}
-
-/**
- * @notice A struct defining allow list data (for minting an allow list).
- * 
- * @param merkleRoot    The merkle root for the allow list.
- * @param publicKeyURIs If the allowListURI is encrypted, a list of URIs
- *                      pointing to the public keys. Empty if unencrypted.
- * @param allowListURI  The URI for the allow list.
- */
-struct AllowListData {
-    bytes32 merkleRoot;
-    string[] publicKeyURIs;
-    string allowListURI;
-}
-
-/**
- * @notice A struct defining minimum and maximum parameters to validate for 
- *         signed mints, to minimize negative effects of a compromised signer.
- *
- * @param minMintPrice                The minimum mint price allowed.
- * @param maxMaxTotalMintableByWallet The maximum total number of mints allowed
- *                                    by a wallet.
- * @param minStartTime                The minimum start time allowed.
- * @param maxEndTime                  The maximum end time allowed.
- * @param maxMaxTokenSupplyForStage   The maximum token supply allowed.
- * @param minFeeBps                   The minimum fee allowed.
- * @param maxFeeBps                   The maximum fee allowed.
- */
-struct SignedMintValidationParams {
-    uint80 minMintPrice; // 80/256 bits
-    uint24 maxMaxTotalMintableByWallet; // 104/256 bits
-    uint40 minStartTime; // 144/256 bits
-    uint40 maxEndTime; // 184/256 bits
-    uint40 maxMaxTokenSupplyForStage; // 224/256 bits
-    uint16 minFeeBps; // 240/256 bits
-    uint16 maxFeeBps; // 256/256 bits
-}
-
-
-// File contracts/interfaces/INonFungibleSeaDropToken.sol
-
-// Original license: SPDX_License_Identifier: MIT
-pragma solidity >=0.8.17;
-
-interface INonFungibleSeaDropToken is ISeaDropTokenContractMetadata {
-    /**
-     * @dev Revert with an error if a contract is not an allowed
-     *      SeaDrop address.
-     */
-    error OnlyAllowedSeaDrop();
-
-    /**
-     * @dev Emit an event when allowed SeaDrop contracts are updated.
-     */
-    event AllowedSeaDropUpdated(address[] allowedSeaDrop);
-
-    /**
-     * @notice Update the allowed SeaDrop contracts.
-     *         Only the owner can use this function.
-     *
-     * @param allowedSeaDrop The allowed SeaDrop addresses.
-     */
-    function updateAllowedSeaDrop(address[] calldata allowedSeaDrop) external;
-
-    /**
-     * @notice Mint tokens, restricted to the SeaDrop contract.
-     *
-     * @dev    NOTE: If a token registers itself with multiple SeaDrop
-     *         contracts, the implementation of this function should guard
-     *         against reentrancy. If the implementing token uses
-     *         _safeMint(), or a feeRecipient with a malicious receive() hook
-     *         is specified, the token or fee recipients may be able to execute
-     *         another mint in the same transaction via a separate SeaDrop
-     *         contract.
-     *         This is dangerous if an implementing token does not correctly
-     *         update the minterNumMinted and currentTotalSupply values before
-     *         transferring minted tokens, as SeaDrop references these values
-     *         to enforce token limits on a per-wallet and per-stage basis.
-     *
-     * @param minter   The address to mint to.
-     * @param quantity The number of tokens to mint.
-     */
-    function mintSeaDrop(address minter, uint256 quantity) external;
-
-    /**
-     * @notice Returns a set of mint stats for the address.
-     *         This assists SeaDrop in enforcing maxSupply,
-     *         maxTotalMintableByWallet, and maxTokenSupplyForStage checks.
-     *
-     * @dev    NOTE: Implementing contracts should always update these numbers
-     *         before transferring any tokens with _safeMint() to mitigate
-     *         consequences of malicious onERC721Received() hooks.
-     *
-     * @param minter The minter address.
-     */
-    function getMintStats(address minter)
-        external
-        view
-        returns (
-            uint256 minterNumMinted,
-            uint256 currentTotalSupply,
-            uint256 maxSupply
-        );
-
-    /**
-     * @notice Update the public drop data for this nft contract on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     * @param seaDropImpl The allowed SeaDrop contract.
-     * @param publicDrop  The public drop data.
-     */
-    function updatePublicDrop(
-        address seaDropImpl,
-        PublicDrop calldata publicDrop
-    ) external;
-
-    /**
-     * @notice Update the allow list data for this nft contract on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     * @param seaDropImpl   The allowed SeaDrop contract.
-     * @param allowListData The allow list data.
-     */
-    function updateAllowList(
-        address seaDropImpl,
-        AllowListData calldata allowListData
-    ) external;
-
-    /**
-     * @notice Update the token gated drop stage data for this nft contract
-     *         on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     *         Note: If two INonFungibleSeaDropToken tokens are doing
-     *         simultaneous token gated drop promotions for each other,
-     *         they can be minted by the same actor until
-     *         `maxTokenSupplyForStage` is reached. Please ensure the
-     *         `allowedNftToken` is not running an active drop during the
-     *         `dropStage` time period.
-     *
-     *
-     * @param seaDropImpl     The allowed SeaDrop contract.
-     * @param allowedNftToken The allowed nft token.
-     * @param dropStage       The token gated drop stage data.
-     */
-    function updateTokenGatedDrop(
-        address seaDropImpl,
-        address allowedNftToken,
-        TokenGatedDropStage calldata dropStage
-    ) external;
-
-    /**
-     * @notice Update the drop URI for this nft contract on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     * @param seaDropImpl The allowed SeaDrop contract.
-     * @param dropURI     The new drop URI.
-     */
-    function updateDropURI(address seaDropImpl, string calldata dropURI)
-        external;
-
-    /**
-     * @notice Update the creator payout address for this nft contract on
-     *         SeaDrop.
-     *         Only the owner can set the creator payout address.
-     *
-     * @param seaDropImpl   The allowed SeaDrop contract.
-     * @param payoutAddress The new payout address.
-     */
-    function updateCreatorPayoutAddress(
-        address seaDropImpl,
-        address payoutAddress
-    ) external;
-
-    /**
-     * @notice Update the allowed fee recipient for this nft contract
-     *         on SeaDrop.
-     *
-     * @param seaDropImpl  The allowed SeaDrop contract.
-     * @param feeRecipient The new fee recipient.
-     */
-    function updateAllowedFeeRecipient(
-        address seaDropImpl,
-        address feeRecipient,
-        bool allowed
-    ) external;
-
-    /**
-     * @notice Update the server-side signers for this nft contract
-     *         on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     * @param seaDropImpl                The allowed SeaDrop contract.
-     * @param signer                     The signer to update.
-     * @param signedMintValidationParams Minimum and maximum parameters
-     *                                   to enforce for signed mints.
-     */
-    function updateSignedMintValidationParams(
-        address seaDropImpl,
-        address signer,
-        SignedMintValidationParams memory signedMintValidationParams
-    ) external;
-
-    /**
-     * @notice Update the allowed payers for this nft contract on SeaDrop.
-     *         Only the owner can use this function.
-     *
-     * @param seaDropImpl The allowed SeaDrop contract.
-     * @param payer       The payer to update.
-     * @param allowed     Whether the payer is allowed.
-     */
-    function updatePayer(
-        address seaDropImpl,
-        address payer,
-        bool allowed
-    ) external;
-}
-
-
-// File contracts/lib/SeaDropErrorsAndEvents.sol
-
-// Original license: SPDX_License_Identifier: MIT
-pragma solidity >=0.8.17;
-
-interface SeaDropErrorsAndEvents {
-    /**
-     * @dev Revert with an error if the drop stage is not active.
-     */
-    error NotActive(
-        uint256 currentTimestamp,
-        uint256 startTimestamp,
-        uint256 endTimestamp
-    );
-
-    /**
-     * @dev Revert with an error if the mint quantity is zero.
-     */
-    error MintQuantityCannotBeZero();
-
-    /**
-     * @dev Revert with an error if the mint quantity exceeds the max allowed
-     *      to be minted per wallet.
-     */
-    error MintQuantityExceedsMaxMintedPerWallet(uint256 total, uint256 allowed);
-
-    /**
-     * @dev Revert with an error if the mint quantity exceeds the max token
-     *      supply.
-     */
-    error MintQuantityExceedsMaxSupply(uint256 total, uint256 maxSupply);
-
-    /**
-     * @dev Revert with an error if the mint quantity exceeds the max token
-     *      supply for the stage.
-     *      Note: The `maxTokenSupplyForStage` for public mint is
-     *      always `type(uint).max`.
-     */
-    error MintQuantityExceedsMaxTokenSupplyForStage(
-        uint256 total, 
-        uint256 maxTokenSupplyForStage
-    );
-    
-    /**
-     * @dev Revert if the fee recipient is the zero address.
-     */
-    error FeeRecipientCannotBeZeroAddress();
-
-    /**
-     * @dev Revert if the fee recipient is not already included.
-     */
-    error FeeRecipientNotPresent();
-
-    /**
-     * @dev Revert if the fee basis points is greater than 10_000.
-     */
-    error InvalidFeeBps(uint256 feeBps);
-
-    /**
-     * @dev Revert if the fee recipient is already included.
-     */
-    error DuplicateFeeRecipient();
-
-    /**
-     * @dev Revert if the fee recipient is restricted and not allowed.
-     */
-    error FeeRecipientNotAllowed();
-
-    /**
-     * @dev Revert if the creator payout address is the zero address.
-     */
-    error CreatorPayoutAddressCannotBeZeroAddress();
-
-    /**
-     * @dev Revert with an error if the received payment is incorrect.
-     */
-    error IncorrectPayment(uint256 got, uint256 want);
-
-    /**
-     * @dev Revert with an error if the allow list proof is invalid.
-     */
-    error InvalidProof();
-
-    /**
-     * @dev Revert if a supplied signer address is the zero address.
-     */
-    error SignerCannotBeZeroAddress();
-
-    /**
-     * @dev Revert with an error if signer's signature is invalid.
-     */
-    error InvalidSignature(address recoveredSigner);
-
-    /**
-     * @dev Revert with an error if a signer is not included in
-     *      the enumeration when removing.
-     */
-    error SignerNotPresent();
-
-    /**
-     * @dev Revert with an error if a payer is not included in
-     *      the enumeration when removing.
-     */
-    error PayerNotPresent();
-
-    /**
-     * @dev Revert with an error if a payer is already included in mapping
-     *      when adding.
-     *      Note: only applies when adding a single payer, as duplicates in
-     *      enumeration can be removed with updatePayer.
-     */
-    error DuplicatePayer();
-
-    /**
-     * @dev Revert with an error if the payer is not allowed. The minter must
-     *      pay for their own mint.
-     */
-    error PayerNotAllowed();
-
-    /**
-     * @dev Revert if a supplied payer address is the zero address.
-     */
-    error PayerCannotBeZeroAddress();
-
-    /**
-     * @dev Revert with an error if the sender does not
-     *      match the INonFungibleSeaDropToken interface.
-     */
-    error OnlyINonFungibleSeaDropToken(address sender);
-
-    /**
-     * @dev Revert with an error if the sender of a token gated supplied
-     *      drop stage redeem is not the owner of the token.
-     */
-    error TokenGatedNotTokenOwner(
-        address nftContract,
-        address allowedNftToken,
-        uint256 allowedNftTokenId
-    );
-
-    /**
-     * @dev Revert with an error if the token id has already been used to
-     *      redeem a token gated drop stage.
-     */
-    error TokenGatedTokenIdAlreadyRedeemed(
-        address nftContract,
-        address allowedNftToken,
-        uint256 allowedNftTokenId
-    );
-
-    /**
-     * @dev Revert with an error if an empty TokenGatedDropStage is provided
-     *      for an already-empty TokenGatedDropStage.
-     */
-     error TokenGatedDropStageNotPresent();
-
-    /**
-     * @dev Revert with an error if an allowedNftToken is set to
-     *      the zero address.
-     */
-     error TokenGatedDropAllowedNftTokenCannotBeZeroAddress();
-
-    /**
-     * @dev Revert with an error if an allowedNftToken is set to
-     *      the drop token itself.
-     */
-     error TokenGatedDropAllowedNftTokenCannotBeDropToken();
-
-
-    /**
-     * @dev Revert with an error if supplied signed mint price is less than
-     *      the minimum specified.
-     */
-    error InvalidSignedMintPrice(uint256 got, uint256 minimum);
-
-    /**
-     * @dev Revert with an error if supplied signed maxTotalMintableByWallet
-     *      is greater than the maximum specified.
-     */
-    error InvalidSignedMaxTotalMintableByWallet(uint256 got, uint256 maximum);
-
-    /**
-     * @dev Revert with an error if supplied signed start time is less than
-     *      the minimum specified.
-     */
-    error InvalidSignedStartTime(uint256 got, uint256 minimum);
-    
-    /**
-     * @dev Revert with an error if supplied signed end time is greater than
-     *      the maximum specified.
-     */
-    error InvalidSignedEndTime(uint256 got, uint256 maximum);
-
-    /**
-     * @dev Revert with an error if supplied signed maxTokenSupplyForStage
-     *      is greater than the maximum specified.
-     */
-     error InvalidSignedMaxTokenSupplyForStage(uint256 got, uint256 maximum);
-    
-     /**
-     * @dev Revert with an error if supplied signed feeBps is greater than
-     *      the maximum specified, or less than the minimum.
-     */
-    error InvalidSignedFeeBps(uint256 got, uint256 minimumOrMaximum);
-
-    /**
-     * @dev Revert with an error if signed mint did not specify to restrict
-     *      fee recipients.
-     */
-    error SignedMintsMustRestrictFeeRecipients();
-
-    /**
-     * @dev Revert with an error if a signature for a signed mint has already
-     *      been used.
-     */
-    error SignatureAlreadyUsed();
-
-    /**
-     * @dev An event with details of a SeaDrop mint, for analytical purposes.
-     * 
-     * @param nftContract    The nft contract.
-     * @param minter         The mint recipient.
-     * @param feeRecipient   The fee recipient.
-     * @param payer          The address who payed for the tx.
-     * @param quantityMinted The number of tokens minted.
-     * @param unitMintPrice  The amount paid for each token.
-     * @param feeBps         The fee out of 10_000 basis points collected.
-     * @param dropStageIndex The drop stage index. Items minted
-     *                       through mintPublic() have
-     *                       dropStageIndex of 0.
-     */
-    event SeaDropMint(
-        address indexed nftContract,
-        address indexed minter,
-        address indexed feeRecipient,
-        address payer,
-        uint256 quantityMinted,
-        uint256 unitMintPrice,
-        uint256 feeBps,
-        uint256 dropStageIndex
-    );
-
-    /**
-     * @dev An event with updated public drop data for an nft contract.
-     */
-    event PublicDropUpdated(
-        address indexed nftContract,
-        PublicDrop publicDrop
-    );
-
-    /**
-     * @dev An event with updated token gated drop stage data
-     *      for an nft contract.
-     */
-    event TokenGatedDropStageUpdated(
-        address indexed nftContract,
-        address indexed allowedNftToken,
-        TokenGatedDropStage dropStage
-    );
-
-    /**
-     * @dev An event with updated allow list data for an nft contract.
-     * 
-     * @param nftContract        The nft contract.
-     * @param previousMerkleRoot The previous allow list merkle root.
-     * @param newMerkleRoot      The new allow list merkle root.
-     * @param publicKeyURI       If the allow list is encrypted, the public key
-     *                           URIs that can decrypt the list.
-     *                           Empty if unencrypted.
-     * @param allowListURI       The URI for the allow list.
-     */
-    event AllowListUpdated(
-        address indexed nftContract,
-        bytes32 indexed previousMerkleRoot,
-        bytes32 indexed newMerkleRoot,
-        string[] publicKeyURI,
-        string allowListURI
-    );
-
-    /**
-     * @dev An event with updated drop URI for an nft contract.
-     */
-    event DropURIUpdated(address indexed nftContract, string newDropURI);
-
-    /**
-     * @dev An event with the updated creator payout address for an nft
-     *      contract.
-     */
-    event CreatorPayoutAddressUpdated(
-        address indexed nftContract,
-        address indexed newPayoutAddress
-    );
-
-    /**
-     * @dev An event with the updated allowed fee recipient for an nft
-     *      contract.
-     */
-    event AllowedFeeRecipientUpdated(
-        address indexed nftContract,
-        address indexed feeRecipient,
-        bool indexed allowed
-    );
-
-    /**
-     * @dev An event with the updated validation parameters for server-side
-     *      signers.
-     */
-    event SignedMintValidationParamsUpdated(
-        address indexed nftContract,
-        address indexed signer,
-        SignedMintValidationParams signedMintValidationParams
-    );   
-
-    /**
-     * @dev An event with the updated payer for an nft contract.
-     */
-    event PayerUpdated(
-        address indexed nftContract,
-        address indexed payer,
-        bool indexed allowed
-    );
-}
-
-
-// File contracts/interfaces/ISeaDrop.sol
-
-// Original license: SPDX_License_Identifier: MIT
-pragma solidity >=0.8.17;
-
-interface ISeaDrop is SeaDropErrorsAndEvents {
-    /**
-     * @notice Mint a public drop.
-     *
-     * @param nftContract      The nft contract to mint.
-     * @param feeRecipient     The fee recipient.
-     * @param minterIfNotPayer The mint recipient if different than the payer.
-     * @param quantity         The number of tokens to mint.
-     */
-    function mintPublic(
-        address nftContract,
-        address feeRecipient,
-        address minterIfNotPayer,
-        uint256 quantity
-    ) external payable;
-
-    /**
-     * @notice Mint from an allow list.
-     *
-     * @param nftContract      The nft contract to mint.
-     * @param feeRecipient     The fee recipient.
-     * @param minterIfNotPayer The mint recipient if different than the payer.
-     * @param quantity         The number of tokens to mint.
-     * @param mintParams       The mint parameters.
-     * @param proof            The proof for the leaf of the allow list.
-     */
-    function mintAllowList(
-        address nftContract,
-        address feeRecipient,
-        address minterIfNotPayer,
-        uint256 quantity,
-        MintParams calldata mintParams,
-        bytes32[] calldata proof
-    ) external payable;
-
-    /**
-     * @notice Mint with a server-side signature.
-     *         Note that a signature can only be used once.
-     *
-     * @param nftContract      The nft contract to mint.
-     * @param feeRecipient     The fee recipient.
-     * @param minterIfNotPayer The mint recipient if different than the payer.
-     * @param quantity         The number of tokens to mint.
-     * @param mintParams       The mint parameters.
-     * @param salt             The sale for the signed mint.
-     * @param signature        The server-side signature, must be an allowed
-     *                         signer.
-     */
-    function mintSigned(
-        address nftContract,
-        address feeRecipient,
-        address minterIfNotPayer,
-        uint256 quantity,
-        MintParams calldata mintParams,
-        uint256 salt,
-        bytes calldata signature
-    ) external payable;
-
-    /**
-     * @notice Mint as an allowed token holder.
-     *         This will mark the token id as redeemed and will revert if the
-     *         same token id is attempted to be redeemed twice.
-     *
-     * @param nftContract      The nft contract to mint.
-     * @param feeRecipient     The fee recipient.
-     * @param minterIfNotPayer The mint recipient if different than the payer.
-     * @param mintParams       The token gated mint params.
-     */
-    function mintAllowedTokenHolder(
-        address nftContract,
-        address feeRecipient,
-        address minterIfNotPayer,
-        TokenGatedMintParams calldata mintParams
-    ) external payable;
-
-    /**
-     * @notice Emits an event to notify update of the drop URI.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param dropURI The new drop URI.
-     */
-    function updateDropURI(string calldata dropURI) external;
-
-    /**
-     * @notice Updates the public drop data for the nft contract
-     *         and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param publicDrop The public drop data.
-     */
-    function updatePublicDrop(PublicDrop calldata publicDrop) external;
-
-    /**
-     * @notice Updates the allow list merkle root for the nft contract
-     *         and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param allowListData The allow list data.
-     */
-    function updateAllowList(AllowListData calldata allowListData) external;
-
-    /**
-     * @notice Updates the token gated drop stage for the nft contract
-     *         and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     *         Note: If two INonFungibleSeaDropToken tokens are doing
-     *         simultaneous token gated drop promotions for each other,
-     *         they can be minted by the same actor until
-     *         `maxTokenSupplyForStage` is reached. Please ensure the
-     *         `allowedNftToken` is not running an active drop during
-     *         the `dropStage` time period.
-     *
-     * @param allowedNftToken The token gated nft token.
-     * @param dropStage       The token gated drop stage data.
-     */
-    function updateTokenGatedDrop(
-        address allowedNftToken,
-        TokenGatedDropStage calldata dropStage
-    ) external;
-
-    /**
-     * @notice Updates the creator payout address and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param payoutAddress The creator payout address.
-     */
-    function updateCreatorPayoutAddress(address payoutAddress) external;
-
-    /**
-     * @notice Updates the allowed fee recipient and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param feeRecipient The fee recipient.
-     * @param allowed      If the fee recipient is allowed.
-     */
-    function updateAllowedFeeRecipient(address feeRecipient, bool allowed)
-        external;
-
-    /**
-     * @notice Updates the allowed server-side signers and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param signer                     The signer to update.
-     * @param signedMintValidationParams Minimum and maximum parameters
-     *                                   to enforce for signed mints.
-     */
-    function updateSignedMintValidationParams(
-        address signer,
-        SignedMintValidationParams calldata signedMintValidationParams
-    ) external;
-
-    /**
-     * @notice Updates the allowed payer and emits an event.
-     *
-     *         This method assume msg.sender is an nft contract and its
-     *         ERC165 interface id matches INonFungibleSeaDropToken.
-     *
-     *         Note: Be sure only authorized users can call this from
-     *         token contracts that implement INonFungibleSeaDropToken.
-     *
-     * @param payer   The payer to add or remove.
-     * @param allowed Whether to add or remove the payer.
-     */
-    function updatePayer(address payer, bool allowed) external;
-
-    /**
-     * @notice Returns the public drop data for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getPublicDrop(address nftContract)
-        external
-        view
-        returns (PublicDrop memory);
-
-    /**
-     * @notice Returns the creator payout address for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getCreatorPayoutAddress(address nftContract)
-        external
-        view
-        returns (address);
-
-    /**
-     * @notice Returns the allow list merkle root for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getAllowListMerkleRoot(address nftContract)
-        external
-        view
-        returns (bytes32);
-
-    /**
-     * @notice Returns if the specified fee recipient is allowed
-     *         for the nft contract.
-     *
-     * @param nftContract  The nft contract.
-     * @param feeRecipient The fee recipient.
-     */
-    function getFeeRecipientIsAllowed(address nftContract, address feeRecipient)
-        external
-        view
-        returns (bool);
-
-    /**
-     * @notice Returns an enumeration of allowed fee recipients for an
-     *         nft contract when fee recipients are enforced
-     *
-     * @param nftContract The nft contract.
-     */
-    function getAllowedFeeRecipients(address nftContract)
-        external
-        view
-        returns (address[] memory);
-
-    /**
-     * @notice Returns the server-side signers for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getSigners(address nftContract)
-        external
-        view
-        returns (address[] memory);
-
-    /**
-     * @notice Returns the struct of SignedMintValidationParams for a signer.
-     *
-     * @param nftContract The nft contract.
-     * @param signer      The signer.
-     */
-    function getSignedMintValidationParams(address nftContract, address signer)
-        external
-        view
-        returns (SignedMintValidationParams memory);
-
-    /**
-     * @notice Returns the payers for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getPayers(address nftContract)
-        external
-        view
-        returns (address[] memory);
-
-    /**
-     * @notice Returns if the specified payer is allowed
-     *         for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     * @param payer       The payer.
-     */
-    function getPayerIsAllowed(address nftContract, address payer)
-        external
-        view
-        returns (bool);
-
-    /**
-     * @notice Returns the allowed token gated drop tokens for the nft contract.
-     *
-     * @param nftContract The nft contract.
-     */
-    function getTokenGatedAllowedTokens(address nftContract)
-        external
-        view
-        returns (address[] memory);
-
-    /**
-     * @notice Returns the token gated drop data for the nft contract
-     *         and token gated nft.
-     *
-     * @param nftContract     The nft contract.
-     * @param allowedNftToken The token gated nft token.
-     */
-    function getTokenGatedDrop(address nftContract, address allowedNftToken)
-        external
-        view
-        returns (TokenGatedDropStage memory);
-
-    /**
-     * @notice Returns whether the token id for a token gated drop has been
-     *         redeemed.
-     *
-     * @param nftContract       The nft contract.
-     * @param allowedNftToken   The token gated nft token.
-     * @param allowedNftTokenId The token gated nft token id to check.
-     */
-    function getAllowedNftTokenIdIsRedeemed(
-        address nftContract,
-        address allowedNftToken,
-        uint256 allowedNftTokenId
-    ) external view returns (bool);
-}
-
-
-// File contracts/ed4nsV2.sol
+// File contracts/ed4ns.sol
 
 // Original license: SPDX_License_Identifier: MIT
 pragma solidity ^0.8.24;
@@ -2880,7 +1663,7 @@ struct GameConfig {
     uint256 protocolSharePercent;
 }
 
-contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
+contract ed4ns is ERC721, IEntropyConsumer {
     using Strings for uint256;
 
     error Unauthorized();
@@ -2917,7 +1700,9 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     uint256 public lastCutTimestamp;
     uint256 public minCutInterval;
     bool public cutPending;
-    uint64 public revealBlock;
+
+    IEntropy public immutable dice;
+    address public immutable diceProvider;
 
     // Artwork
     string public artworkURI;
@@ -2936,105 +1721,18 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     event CutFulfilled(uint256 indexed round, uint256 survivorsRemaining);
     event GameFinished(uint256 round, uint256 finalSurvivors, uint256 prizePool);
     event PrizeClaimed(address indexed winner, uint256 indexed tokenId, uint256 amount);
-    event MetadataUpdate(uint256 _tokenId);
-    
 
     modifier onlyArtist() {
         if (msg.sender != artist) revert Unauthorized();
         _;
     }
 
-    // ΓöÇΓöÇΓöÇ Initializer (called once per clone) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-    // SeaDrop Integration
-    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-
-    mapping(address => bool) internal _allowedSeaDrop;
-
-    function updateAllowedSeaDrop(address[] calldata allowedSeaDrop) external override onlyArtist {
-        for (uint256 i = 0; i < allowedSeaDrop.length; i++) {
-            _allowedSeaDrop[allowedSeaDrop[i]] = true;
-        }
-        emit AllowedSeaDropUpdated(allowedSeaDrop);
-    }
-
-    function mintSeaDrop(address minter, uint256 quantity) external override {
-        if (!_allowedSeaDrop[msg.sender]) revert OnlyAllowedSeaDrop();
-        if (block.timestamp < mintOpenTime || block.timestamp > mintCloseTime) revert BadState();
-
-        uint256 startId = _totalSupply + 1;
-        _totalSupply += quantity;
-
-        for (uint256 i = 0; i < quantity; i++) {
-            _mint(minter, startId + i);
-            emit TokenMinted(minter, startId + i, mintPrice);
-        }
-    }
-
-    function getMintStats(address minter) external view override returns (uint256 minterNumMinted, uint256 currentTotalSupply, uint256 _maxSupply) {
-        minterNumMinted = ERC721.balanceOf(minter);
-        currentTotalSupply = _totalSupply;
-        _maxSupply = type(uint256).max;
-    }
-
-    modifier onlyAllowedSeaDrop(address seaDropImpl) {
-        if (!_allowedSeaDrop[seaDropImpl]) revert OnlyAllowedSeaDrop();
-        _;
-    }
-
-    function updatePublicDrop(address seaDropImpl, PublicDrop calldata publicDrop) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updatePublicDrop(publicDrop);
-    }
-    
-    function updateAllowList(address seaDropImpl, AllowListData calldata allowListData) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateAllowList(allowListData);
-    }
-
-    function updateTokenGatedDrop(address seaDropImpl, address allowedNftToken, TokenGatedDropStage calldata dropStage) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateTokenGatedDrop(allowedNftToken, dropStage);
-    }
-
-    function updateDropURI(address seaDropImpl, string calldata dropURI) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateDropURI(dropURI);
-    }
-
-    function updateCreatorPayoutAddress(address seaDropImpl, address payoutAddress) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateCreatorPayoutAddress(payoutAddress);
-    }
-
-    function updateAllowedFeeRecipient(address seaDropImpl, address feeRecipient, bool allowed) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateAllowedFeeRecipient(feeRecipient, allowed);
-    }
-
-    function updateSignedMintValidationParams(address seaDropImpl, address signer, SignedMintValidationParams memory params) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updateSignedMintValidationParams(signer, params);
-    }
-
-    function updatePayer(address seaDropImpl, address payer, bool allowed) external override onlyArtist onlyAllowedSeaDrop(seaDropImpl) {
-        ISeaDrop(seaDropImpl).updatePayer(payer, allowed);
-    }
-
-    function setBaseURI(string calldata) external override { revert("Not supported"); }
-    function setContractURI(string calldata) external override { revert("Not supported"); }
-    function setMaxSupply(uint256) external override { revert("Not supported"); }
-    function setProvenanceHash(bytes32) external override { revert("Not supported"); }
-    function setRoyaltyInfo(RoyaltyInfo calldata) external override { revert("Not supported"); }
-    function baseURI() external view override returns (string memory) { return ""; }
-    function contractURI() external view override returns (string memory) { return ""; }
-    function maxSupply() external view override returns (uint256) { return type(uint256).max; }
-    function provenanceHash() external view override returns (bytes32) { return bytes32(0); }
-    function royaltyAddress() external view override returns (address) { return address(0); }
-    function royaltyBasisPoints() external view override returns (uint256) { return 0; }
-    function royaltyInfo(uint256, uint256) external view override returns (address, uint256) { return (address(0), 0); }
-    
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, IERC165) returns (bool) {
-        return interfaceId == type(INonFungibleSeaDropToken).interfaceId || super.supportsInterface(interfaceId);
-    }
-
     // ΓöÇΓöÇΓöÇ Constructor (implementation lock only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     /// @dev Locks the implementation contract so it can never be initialized directly.
     ///      All real deployments happen via Ed4nsFactory clones + initialize().
-    constructor() ERC721("", "") {
+    constructor(address _dice, address _diceProvider) ERC721("", "") {
+        dice = IEntropy(_dice);
+        diceProvider = _diceProvider;
         _initialized = true; // prevent implementation from being used
     }
 
@@ -3079,22 +1777,6 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
 
     /// @notice Publicly mint tokens during the open edition window.
     ///         Splits the payment: 45% prize pool, 45% artist, 10% protocol.
-    receive() external payable {
-        // Route incoming ETH (e.g. from SeaDrop) to prize pool, artist, and protocol
-        if (msg.value == 0) return;
-        uint256 poolShare = (msg.value * prizePoolSharePercent) / 100;
-        uint256 artistShare = (msg.value * artistSharePercent) / 100;
-        uint256 protocolShare = msg.value - poolShare - artistShare;
-
-        prizePool += poolShare;
-
-        (bool successArtist, ) = artist.call{value: artistShare}('\'\'');
-        if (!successArtist) revert BadTx();
-
-        (bool successProtocol, ) = protocol.call{value: protocolShare}('\'\'');
-        if (!successProtocol) revert BadTx();
-    }
-
     function mint(uint256 quantity) external payable {
         if (block.timestamp < mintOpenTime || block.timestamp > mintCloseTime) revert BadState();
         if (quantity == 0 || msg.value != mintPrice * quantity) revert InvalidArgs();
@@ -3140,36 +1822,38 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         lastCutTimestamp = block.timestamp;
 
         emit GameInitialized(_totalSupply, artworkURI, prizePool);
-        emit BatchMetadataUpdate(1, type(uint256).max);
     }
 
     // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
     // Phase 2 ΓÇö Future Blockhash Commit-Reveal Cuts (100% Free & On-Chain!)
     // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
-    /// @notice Commit to a future blockhash to trigger the elimination round.
-    function triggerCut() external {
+    function triggerCut() external payable {
         if (!gameInitialized || gameFinished || cutPending) revert BadState();
         if (block.timestamp < lastCutTimestamp + minCutInterval) revert BadState();
         if (_poolSizeAfterRounds(roundCount) <= FINAL_SURVIVORS) revert BadState();
 
         cutPending = true;
-        revealBlock = uint64(block.number + 1);
         lastCutTimestamp = block.timestamp;
 
-        emit CutCommitted(revealBlock, roundCount + 1);
+        bytes32 userRandom = keccak256(abi.encodePacked(
+            msg.sender, block.timestamp, block.prevrandao, gasleft()
+        ));
+
+        // Note: msg.value must exactly match dice.getFeeV2(diceProvider, 200000)
+        uint64 seq = dice.requestV2{value: msg.value}(diceProvider, userRandom, uint32(200000));
+
+        emit CutCommitted(seq, roundCount + 1);
     }
 
-    /// @notice Reveal the cut results once the committed block has been mined.
-    function revealCut() external {
-        if (!cutPending || block.number <= revealBlock || block.number > revealBlock + 256) revert BadState();
+    function entropyCallback(
+        uint64 /* sequenceNumber */,
+        address /* provider */,
+        bytes32 randomNumber
+    ) internal override {
+        if (!cutPending) revert BadState();
 
-        bytes32 bhash = blockhash(revealBlock);
-        if (bhash == bytes32(0)) revert BadState();
-
-        uint256 seed = uint256(
-            keccak256(abi.encodePacked(bhash, block.prevrandao, roundCount))
-        );
+        uint256 seed = uint256(randomNumber);
 
         roundSeeds.push(seed);
         roundCount++;
@@ -3183,7 +1867,10 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         }
 
         emit CutFulfilled(roundCount, survivorsRemaining);
-        emit BatchMetadataUpdate(1, type(uint256).max);
+    }
+
+    function getEntropy() internal view override returns (address) {
+        return address(dice);
     }
 
     // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
@@ -3286,7 +1973,6 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
         if (!ok) revert BadTx();
 
         emit PrizeClaimed(msg.sender, tokenId, payout);
-        emit MetadataUpdate(tokenId);
     }
 
     // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
@@ -3390,7 +2076,6 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
     // ΓöÇΓöÇΓöÇ Emergency & Admin ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     function resetCutPending() external onlyArtist {
-        if (!cutPending || (block.number <= revealBlock + 256 && block.number <= revealBlock + 25)) revert BadState();
         cutPending = false;
     }
 
@@ -3456,24 +2141,118 @@ contract ed4nsV2 is ERC721, INonFungibleSeaDropToken {
 }
 
 
-// File contracts/Ed4nsFactoryV2.sol
+// File @openzeppelin/contracts/proxy/Clones.sol@v4.9.6
+
+// Original license: SPDX_License_Identifier: MIT
+// OpenZeppelin Contracts (last updated v4.9.0) (proxy/Clones.sol)
+
+pragma solidity ^0.8.24;
+
+/**
+ * @dev https://eips.ethereum.org/EIPS/eip-1167[EIP 1167] is a standard for
+ * deploying minimal proxy contracts, also known as "clones".
+ *
+ * > To simply and cheaply clone contract functionality in an immutable way, this standard specifies
+ * > a minimal bytecode implementation that delegates all calls to a known, fixed address.
+ *
+ * The library includes functions to deploy a proxy using either `create` (traditional deployment) or `create2`
+ * (salted deterministic deployment). It also includes functions to predict the addresses of clones deployed using the
+ * deterministic method.
+ *
+ * _Available since v3.4._
+ */
+library Clones {
+    /**
+     * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
+     *
+     * This function uses the create opcode, which should never revert.
+     */
+    function clone(address implementation) internal returns (address instance) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Cleans the upper 96 bits of the `implementation` word, then packs the first 3 bytes
+            // of the `implementation` address with the bytecode before the address.
+            mstore(0x00, or(shr(0xe8, shl(0x60, implementation)), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000))
+            // Packs the remaining 17 bytes of `implementation` with the bytecode after the address.
+            mstore(0x20, or(shl(0x78, implementation), 0x5af43d82803e903d91602b57fd5bf3))
+            instance := create(0, 0x09, 0x37)
+        }
+        require(instance != address(0), "ERC1167: create failed");
+    }
+
+    /**
+     * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
+     *
+     * This function uses the create2 opcode and a `salt` to deterministically deploy
+     * the clone. Using the same `implementation` and `salt` multiple time will revert, since
+     * the clones cannot be deployed twice at the same address.
+     */
+    function cloneDeterministic(address implementation, bytes32 salt) internal returns (address instance) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Cleans the upper 96 bits of the `implementation` word, then packs the first 3 bytes
+            // of the `implementation` address with the bytecode before the address.
+            mstore(0x00, or(shr(0xe8, shl(0x60, implementation)), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000))
+            // Packs the remaining 17 bytes of `implementation` with the bytecode after the address.
+            mstore(0x20, or(shl(0x78, implementation), 0x5af43d82803e903d91602b57fd5bf3))
+            instance := create2(0, 0x09, 0x37, salt)
+        }
+        require(instance != address(0), "ERC1167: create2 failed");
+    }
+
+    /**
+     * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
+     */
+    function predictDeterministicAddress(
+        address implementation,
+        bytes32 salt,
+        address deployer
+    ) internal pure returns (address predicted) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let ptr := mload(0x40)
+            mstore(add(ptr, 0x38), deployer)
+            mstore(add(ptr, 0x24), 0x5af43d82803e903d91602b57fd5bf3ff)
+            mstore(add(ptr, 0x14), implementation)
+            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
+            mstore(add(ptr, 0x58), salt)
+            mstore(add(ptr, 0x78), keccak256(add(ptr, 0x0c), 0x37))
+            predicted := keccak256(add(ptr, 0x43), 0x55)
+        }
+    }
+
+    /**
+     * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
+     */
+    function predictDeterministicAddress(
+        address implementation,
+        bytes32 salt
+    ) internal view returns (address predicted) {
+        return predictDeterministicAddress(implementation, salt, address(this));
+    }
+}
+
+
+// File contracts/Ed4nsFactory.sol
 
 // Original license: SPDX_License_Identifier: MIT
 pragma solidity ^0.8.24;
-/// @title  Ed4nsFactoryV2 ΓÇö Clone factory for ed4ns survival games
+
+
+/// @title  Ed4nsFactory ΓÇö Clone factory for ed4ns survival games
 /// @notice Deploys minimal EIP-1167 proxy clones of the ed4ns implementation.
 ///         The factory is tiny (~3KB) because it does NOT embed ed4ns bytecode.
 ///         Deploy ed4ns once as the implementation, then clone it cheaply per game.
-contract Ed4nsFactoryV2 {
+contract Ed4nsFactory {
 
     // ΓöÇΓöÇΓöÇ State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     address public owner;
     address payable public protocol;
 
-    address public immutable masterImplementation; // the master ed4ns contract
+    address public immutable implementation; // the master ed4ns contract
 
-    uint256 public prizePoolSharePercent = 45;
-    uint256 public artistSharePercent    = 45;
+    uint256 public prizePoolSharePercent = 70;
+    uint256 public artistSharePercent    = 20;
     uint256 public protocolSharePercent  = 10;
 
     address[] private _games;
@@ -3481,7 +2260,7 @@ contract Ed4nsFactoryV2 {
 
     // ΓöÇΓöÇΓöÇ Events ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     event GameDeployed(
-        address indexed gameAddress,
+        address indexed game,
         address indexed artist
     );
     event ProtocolUpdated(address indexed newProtocol);
@@ -3496,13 +2275,15 @@ contract Ed4nsFactoryV2 {
 
     // ΓöÇΓöÇΓöÇ Constructor ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     /// @param _protocol  Wallet receiving the protocol share of every mint.
-    constructor(address payable _protocol) {
+    /// @param _dice      Address of the Dice Entropy contract
+    /// @param _diceProvider Address of the Dice Provider
+    constructor(address payable _protocol, address _dice, address _diceProvider) {
         require(_protocol != address(0), "Invalid protocol");
         owner    = msg.sender;
         protocol = _protocol;
 
-        // Deploy the master implementation once
-        masterImplementation = address(new ed4nsV2());
+        // Deploy the implementation once ΓÇö it is locked (initialized=true in its constructor)
+        implementation = address(new ed4ns(_dice, _diceProvider));
     }
 
     // ΓöÇΓöÇΓöÇ Protocol Management ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
@@ -3541,7 +2322,7 @@ contract Ed4nsFactoryV2 {
     /// @notice Clone the implementation and initialize a new game. Caller becomes the artist.
     function deployGame(DeployParams calldata params) external returns (address) {
         // Clone the implementation (EIP-1167 minimal proxy)
-        address clone = Clones.clone(masterImplementation);
+        address clone = Clones.clone(implementation);
 
         // Initialize the clone with caller as artist
         GameConfig memory config;
@@ -3559,7 +2340,7 @@ contract Ed4nsFactoryV2 {
         config.artistSharePercent   = artistSharePercent;
         config.protocolSharePercent = protocolSharePercent;
 
-        ed4nsV2(payable(clone)).initialize(config);
+        ed4ns(clone).initialize(config);
 
         _games.push(clone);
         gamesByArtist[msg.sender].push(clone);

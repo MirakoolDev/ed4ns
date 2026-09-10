@@ -12,6 +12,7 @@ pragma solidity ^0.8.24;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IEntropyConsumer, IEntropy} from "./interfaces/DiceInterfaces.sol";
 
 struct GameConfig {
     string name;
@@ -29,7 +30,7 @@ struct GameConfig {
     uint256 protocolSharePercent;
 }
 
-contract ed4ns is ERC721 {
+contract ed4ns is ERC721, IEntropyConsumer {
     using Strings for uint256;
 
     error Unauthorized();
@@ -66,7 +67,9 @@ contract ed4ns is ERC721 {
     uint256 public lastCutTimestamp;
     uint256 public minCutInterval;
     bool public cutPending;
-    uint64 public revealBlock;
+
+    IEntropy public immutable dice;
+    address public immutable diceProvider;
 
     // Artwork
     string public artworkURI;
@@ -94,7 +97,9 @@ contract ed4ns is ERC721 {
     // ─── Constructor (implementation lock only) ───────────────────────────────
     /// @dev Locks the implementation contract so it can never be initialized directly.
     ///      All real deployments happen via Ed4nsFactory clones + initialize().
-    constructor() ERC721("", "") {
+    constructor(address _dice, address _diceProvider) ERC721("", "") {
+        dice = IEntropy(_dice);
+        diceProvider = _diceProvider;
         _initialized = true; // prevent implementation from being used
     }
 
@@ -190,29 +195,32 @@ contract ed4ns is ERC721 {
     // Phase 2 — Future Blockhash Commit-Reveal Cuts (100% Free & On-Chain!)
     // ═════════════════════════════════════════════════════════════════════════
 
-    /// @notice Commit to a future blockhash to trigger the elimination round.
-    function triggerCut() external {
+    function triggerCut() external payable {
         if (!gameInitialized || gameFinished || cutPending) revert BadState();
         if (block.timestamp < lastCutTimestamp + minCutInterval) revert BadState();
         if (_poolSizeAfterRounds(roundCount) <= FINAL_SURVIVORS) revert BadState();
 
         cutPending = true;
-        revealBlock = uint64(block.number + 1);
         lastCutTimestamp = block.timestamp;
 
-        emit CutCommitted(revealBlock, roundCount + 1);
+        bytes32 userRandom = keccak256(abi.encodePacked(
+            msg.sender, block.timestamp, block.prevrandao, gasleft()
+        ));
+
+        // Note: msg.value must exactly match dice.getFeeV2(diceProvider, 200000)
+        uint64 seq = dice.requestV2{value: msg.value}(diceProvider, userRandom, uint32(200000));
+
+        emit CutCommitted(seq, roundCount + 1);
     }
 
-    /// @notice Reveal the cut results once the committed block has been mined.
-    function revealCut() external {
-        if (!cutPending || block.number <= revealBlock || block.number > revealBlock + 256) revert BadState();
+    function entropyCallback(
+        uint64 /* sequenceNumber */,
+        address /* provider */,
+        bytes32 randomNumber
+    ) internal override {
+        if (!cutPending) revert BadState();
 
-        bytes32 bhash = blockhash(revealBlock);
-        if (bhash == bytes32(0)) revert BadState();
-
-        uint256 seed = uint256(
-            keccak256(abi.encodePacked(bhash, block.prevrandao, roundCount))
-        );
+        uint256 seed = uint256(randomNumber);
 
         roundSeeds.push(seed);
         roundCount++;
@@ -226,6 +234,10 @@ contract ed4ns is ERC721 {
         }
 
         emit CutFulfilled(roundCount, survivorsRemaining);
+    }
+
+    function getEntropy() internal view override returns (address) {
+        return address(dice);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -431,7 +443,6 @@ contract ed4ns is ERC721 {
     // ─── Emergency & Admin ───────────────────────────────────────────────────
 
     function resetCutPending() external onlyArtist {
-        if (!cutPending || (block.number <= revealBlock + 256 && block.number <= revealBlock + 25)) revert BadState();
         cutPending = false;
     }
 

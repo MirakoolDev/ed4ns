@@ -10,23 +10,13 @@ import {
   useWaitForTransactionReceipt,
   usePublicClient,
   useChainId,
+  useSwitchChain,
 } from "wagmi";
-import { formatEther } from "viem";
-import { FACTORY_ADDRESS, AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl } from "@/config";
+import { formatEther, parseEther, parseAbi } from "viem";
+import { AUTHORIZED_CREATOR, getAlchemyUrl, getAlchemyNftUrl, getExplorerUrl, nativeToken, artworkImageSrc } from "@/config";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { computeAllStatuses, type TokenStatusMap } from "@/lib/gameEngine";
-
-const resolveGatewayUrl = (url: string): string => {
-  if (!url) return "";
-  if (url.startsWith("ipfs://")) {
-    if (url.includes(".4everland.store")) return url.replace("ipfs://", "https://");
-    return url.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
-  }
-  if (url.startsWith("ar://"))
-    return url.replace("ar://", "https://arweave.net/");
-  return url;
-};
 
 interface TokenData {
   id: number;
@@ -58,17 +48,19 @@ const CARD_BORDER: Record<string, string> = {
   claimed:  "2px solid var(--blue)",
 };
 
-export default function Page({ params }: { params: Promise<{ address: string }> }) {
+export default function Page({ params, searchParams }: { params: Promise<{ address: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const unwrappedParams = use(params);
   const NFT_ADDRESS = unwrappedParams.address as `0x${string}`;
+  const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const { switchChainAsync } = useSwitchChain();
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [tokens, setTokens] = useState<TokenData[]>([]);
+
   const [statusMap, setStatusMap] = useState<TokenStatusMap>({});
   const [myTokenIds, setMyTokenIds] = useState<Set<number>>(new Set());
-  const [resolvedArtwork, setResolvedArtwork] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activePlayers, setActivePlayers] = useState<number | null>(null);
   const [gridExpanded, setGridExpanded] = useState(false);
@@ -77,9 +69,24 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const [editingSlug, setEditingSlug] = useState(false);
 
   useEffect(() => {
-    const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`);
-    if (slug) setOpenseaSlug(slug);
-  }, [NFT_ADDRESS]);
+    if (typeof window !== "undefined") {
+      const slug = localStorage.getItem(`os_slug_${NFT_ADDRESS}`);
+      if (slug) setOpenseaSlug(slug);
+    }
+    
+    // Auto-fetch from OpenSea API to sync for all users
+    fetch(`/api/opensea-slug?address=${NFT_ADDRESS}&chainId=${chainId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.slug) {
+          setOpenseaSlug(data.slug);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`os_slug_${NFT_ADDRESS}`, data.slug);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [NFT_ADDRESS, chainId]);
 
   const saveSlug = (val: string) => {
     setOpenseaSlug(val);
@@ -87,14 +94,12 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     setEditingSlug(false);
   };
 
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId });
 
   // Admin state
   const [artworkInput, setArtworkInput] = useState("");
   const [isSubmittingCut, setIsSubmittingCut] = useState(false);
   const [cutTxHash, setCutTxHash] = useState<`0x${string}` | undefined>();
-  const [revealTxHash, setRevealTxHash] = useState<`0x${string}` | undefined>();
-  const [isSubmittingReveal, setIsSubmittingReveal] = useState(false);
 
   const addToast = (msg: string, type = "info") => {
     const id = Date.now() + Math.random();
@@ -107,12 +112,21 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "artist",
+    chainId,
+  });
+
+  const { data: prizePoolSharePercent } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "prizePoolSharePercent",
+    chainId,
   });
 
   const { data: prizePool } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePool",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -120,6 +134,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "aliveCount",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -127,6 +142,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "roundCount",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -134,6 +150,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "gameFinished",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -141,6 +158,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "gameInitialized",
+    chainId,
     query: { refetchInterval: 15000, staleTime: 10000 },
   });
 
@@ -148,13 +166,29 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "mintingOpen",
+    chainId,
     query: { refetchInterval: 4000 },
+  });
+
+  const { data: mintOpenTime } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "mintOpenTime",
+    chainId,
+  });
+
+  const { data: mintCloseTime } = useReadContract({
+    address: NFT_ADDRESS,
+    abi: NFT_ABI,
+    functionName: "mintCloseTime",
+    chainId,
   });
 
   const { data: cutPending } = useReadContract({
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "cutPending",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -162,6 +196,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "lastCutTimestamp",
+    chainId,
     query: { refetchInterval: 10000 },
   });
 
@@ -171,6 +206,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "minCutInterval",
+    chainId,
   });
 
   useEffect(() => {
@@ -199,6 +235,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "prizePerWinner",
+    chainId,
     query: { refetchInterval: 4000 },
   });
 
@@ -206,6 +243,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "totalSupply",
+    chainId,
     query: { refetchInterval: 20000, staleTime: 15000 },
   });
 
@@ -220,7 +258,9 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   useEffect(() => {
     const fetchPlayers = async () => {
       const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
-      if (alchemyKey && userAddress) {
+      const isAlchemySupported = chainId === 4663 || chainId === 46630 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
+      
+      if (alchemyKey && userAddress && isAlchemySupported) {
         try {
           const res = await fetch(
             `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}`
@@ -228,8 +268,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
           const json = await res.json();
           if (json.owners) setActivePlayers(json.owners.length);
         } catch (e) {
-          // ignore
+          setActivePlayers(null);
         }
+      } else {
+        setActivePlayers(null);
       }
     };
     fetchPlayers();
@@ -241,6 +283,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "artworkURI",
+    chainId,
     query: { staleTime: 60000 },
   });
 
@@ -248,6 +291,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "startTokenId",
+    chainId,
     query: { staleTime: Infinity },
   });
 
@@ -255,6 +299,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     address: NFT_ADDRESS,
     abi: NFT_ABI,
     functionName: "endTokenId",
+    chainId,
     query: { refetchInterval: 20000, staleTime: 15000 },
   });
 
@@ -266,6 +311,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
       abi: NFT_ABI,
       functionName: "getRoundSeed" as const,
       args: [BigInt(i)],
+      chainId,
     })
   );
 
@@ -280,23 +326,16 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   );
 
 
-  // Resolve artwork URI
+  // Resolve artwork URI. Populate the artist's edit-form input with the raw
+  // URI as soon as it's known.
   useEffect(() => {
-    if (!existingArtworkURI) return;
-    const url = resolveGatewayUrl(existingArtworkURI as string);
-    const tryResolve = async () => {
-      try {
-        const r = await fetch(url);
-        const j = await r.json();
-        setResolvedArtwork(resolveGatewayUrl(j.image || url));
-        setArtworkInput(j.image || existingArtworkURI as string);
-      } catch {
-        setResolvedArtwork(url);
-        setArtworkInput(existingArtworkURI as string);
-      }
-    };
-    tryResolve();
+    if (existingArtworkURI) setArtworkInput(existingArtworkURI as string);
   }, [existingArtworkURI]);
+
+  // Route artwork through our own domain (see /api/artwork-image) instead of
+  // linking directly to a third-party IPFS gateway — besides CORS/latency,
+  // ad blockers commonly block wildcard IPFS-gateway subdomains outright.
+  const resolvedArtwork = existingArtworkURI ? artworkImageSrc(existingArtworkURI as string) : "";
 
   // Token grid reads
   const startId = Number(startTokenId || 1n);
@@ -364,7 +403,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   // Uses Alchemy's asset transfer API (no block range limits) when key is
   // available, otherwise falls back to ownerOf for winner tokens only.
   useEffect(() => {
-    if (!userAddress) return;
+    if (!userAddress || !publicClient) return;
 
     let cancelled = false;
 
@@ -373,100 +412,165 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
         const contractAddr = NFT_ADDRESS.toLowerCase();
 
-        if (alchemyKey) {
+        if (alchemyKey && (chainId === 4663 || chainId === 46630 || chainId === 8453 || chainId === 84532 || chainId === 11155111)) {
           // Alchemy: single paginated call, no block range issues
           const alchemyUrl = getAlchemyUrl(alchemyKey, chainId);
+          let alchemySuccess = false;
+
+          try {
+            const owned = new Set<number>();
+            let pageKey: string | undefined = undefined;
+
+            do {
+              const body: any = {
+                id: 1, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
+                params: [{
+                  fromBlock: "0x0",
+                  toBlock: "latest",
+                  toAddress: userAddress,
+                  contractAddresses: [NFT_ADDRESS],
+                  category: ["erc721"],
+                  withMetadata: false,
+                  excludeZeroValue: true,
+                  maxCount: "0x3e8", // 1000 per page
+                  ...(pageKey ? { pageKey } : {}),
+                }],
+              };
+              const res = await fetch(alchemyUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              });
+              const json = await res.json();
+              if (json.error) throw new Error(json.error.message);
+              
+              const transfers = json?.result?.transfers ?? [];
+              for (const t of transfers) {
+                if (t.tokenId) owned.add(Number(BigInt(t.tokenId)));
+              }
+              pageKey = json?.result?.pageKey;
+            } while (pageKey && !cancelled);
+
+            // Remove tokens sent away
+            let outPageKey: string | undefined = undefined;
+            do {
+              const body: any = {
+                id: 2, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
+                params: [{
+                  fromBlock: "0x0",
+                  toBlock: "latest",
+                  fromAddress: userAddress,
+                  contractAddresses: [NFT_ADDRESS],
+                  category: ["erc721"],
+                  withMetadata: false,
+                  excludeZeroValue: true,
+                  maxCount: "0x3e8",
+                  ...(outPageKey ? { pageKey: outPageKey } : {}),
+                }],
+              };
+              const res = await fetch(alchemyUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              });
+              const json = await res.json();
+              if (json.error) throw new Error(json.error.message);
+              
+              const transfers = json?.result?.transfers ?? [];
+              for (const t of transfers) {
+                if (t.tokenId) owned.delete(Number(BigInt(t.tokenId)));
+              }
+              outPageKey = json?.result?.pageKey;
+            } while (outPageKey && !cancelled);
+
+            if (!cancelled) setMyTokenIds(owned);
+            alchemySuccess = true;
+          } catch (e) {
+            console.warn("Alchemy fetch failed, falling back...", e);
+          }
+
+          if (!alchemySuccess) {
+            // Fallback: Multicall ownerOf for all tokens
+          const start = Number(startTokenId || 1n);
+          const end = Number(endTokenId || 0n);
+          const total = end > 0 ? end - start + 1 : Number(totalSupply || 0);
+          if (total === 0) return;
+
+          const allIds = Array.from({ length: total }, (_, i) => start + i);
+          
+          // Chunk the readContracts in very small batches with delays to avoid public RPC rate limits
+          const chunkSize = 10;
           const owned = new Set<number>();
-          let pageKey: string | undefined = undefined;
-
-          do {
-            const body: any = {
-              id: 1, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toBlock: "latest",
-                toAddress: userAddress,
-                contractAddresses: [NFT_ADDRESS],
-                category: ["erc721"],
-                withMetadata: false,
-                excludeZeroValue: true,
-                maxCount: "0x3e8", // 1000 per page
-                ...(pageKey ? { pageKey } : {}),
-              }],
-            };
-            const res = await fetch(alchemyUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(body),
+          
+          for (let i = 0; i < allIds.length; i += chunkSize) {
+            const chunk = allIds.slice(i, i + chunkSize);
+            const results = await Promise.allSettled(
+              chunk.map((id) =>
+                publicClient!.readContract({
+                  address: NFT_ADDRESS as `0x${string}`,
+                  abi: NFT_ABI,
+                  functionName: "ownerOf",
+                  args: [BigInt(id)],
+                })
+              )
+            );
+            
+            results.forEach((res, idx) => {
+              if (res.status === "fulfilled" && (res.value as string).toLowerCase() === userAddress.toLowerCase()) {
+                owned.add(chunk[idx]);
+              }
             });
-            const json = await res.json();
-            const transfers = json?.result?.transfers ?? [];
-            for (const t of transfers) {
-              if (t.tokenId) owned.add(Number(BigInt(t.tokenId)));
-            }
-            pageKey = json?.result?.pageKey;
-          } while (pageKey && !cancelled);
-
-          // Remove tokens sent away
-          let outPageKey: string | undefined = undefined;
-          do {
-            const body: any = {
-              id: 2, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toBlock: "latest",
-                fromAddress: userAddress,
-                contractAddresses: [NFT_ADDRESS],
-                category: ["erc721"],
-                withMetadata: false,
-                excludeZeroValue: true,
-                maxCount: "0x3e8",
-                ...(outPageKey ? { pageKey: outPageKey } : {}),
-              }],
-            };
-            const res = await fetch(alchemyUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(body),
-            });
-            const json = await res.json();
-            const transfers = json?.result?.transfers ?? [];
-            for (const t of transfers) {
-              if (t.tokenId) owned.delete(Number(BigInt(t.tokenId)));
-            }
-            outPageKey = json?.result?.pageKey;
-          } while (outPageKey && !cancelled);
+            if (cancelled) return;
+            // Short delay to respect public RPC rate limits
+            await new Promise(r => setTimeout(r, 100));
+          }
 
           if (!cancelled) setMyTokenIds(owned);
+        }
         } else {
-          // Fallback: ownerOf check only on winner tokens (tiny set)
-          const winnerIds = Object.entries(statusMap)
-            .filter(([, v]) => v === "alive")
-            .map(([k]) => Number(k));
-          if (winnerIds.length === 0) return;
-          const results = await Promise.all(
-            winnerIds.map((id) =>
-              publicClient!.readContract({
-                address: NFT_ADDRESS as `0x${string}`,
-                abi: NFT_ABI,
-                functionName: "ownerOf",
-                args: [BigInt(id)],
-              }).then((owner) => ({ id, owner: (owner as string).toLowerCase() }))
-            )
-          );
-          if (!cancelled) {
-            const owned = new Set<number>(results.filter(r => r.owner === userAddress.toLowerCase()).map(r => r.id));
-            setMyTokenIds(owned);
+          // Fallback logic for when Alchemy is not used
+          const start = Number(startTokenId || 1n);
+          const end = Number(endTokenId || 0n);
+          const total = end > 0 ? end - start + 1 : Number(totalSupply || 0);
+          if (total === 0) return;
+
+          const allIds = Array.from({ length: total }, (_, i) => start + i);
+          
+          const chunkSize = 10;
+          const owned = new Set<number>();
+          
+          for (let i = 0; i < allIds.length; i += chunkSize) {
+            const chunk = allIds.slice(i, i + chunkSize);
+            const results = await Promise.allSettled(
+              chunk.map((id) =>
+                publicClient!.readContract({
+                  address: NFT_ADDRESS as `0x${string}`,
+                  abi: NFT_ABI,
+                  functionName: "ownerOf",
+                  args: [BigInt(id)],
+                })
+              )
+            );
+            
+            results.forEach((res, idx) => {
+              if (res.status === "fulfilled" && (res.value as string).toLowerCase() === userAddress.toLowerCase()) {
+                owned.add(chunk[idx]);
+              }
+            });
+            if (cancelled) return;
+            // Short delay to respect public RPC rate limits
+            await new Promise(r => setTimeout(r, 100));
           }
+          if (!cancelled) setMyTokenIds(owned);
         }
       } catch (e) {
-        console.warn("Failed to fetch owned tokens:", e);
+        console.warn("Fatal error in token fetch loop:", e);
       }
     };
 
     fetchMyTokens();
     return () => { cancelled = true; };
-  }, [userAddress, NFT_ADDRESS, statusMap, chainId]);
+  }, [userAddress, NFT_ADDRESS, statusMap, chainId, publicClient]);
 
   // ── Mine filter: fetch claimed status for my winner/alive tokens ─────────
   useEffect(() => {
@@ -509,13 +613,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const visibleTokens = filtered.slice(0, visibleCount);
 
   // Build token array from visible slice — no ownerOf needed for status
-  useEffect(() => {
-    const built = visibleTokens.map((t) => ({
-      ...t,
-      owner: myTokenIds.has(t.id) ? userAddress || "" : "",
-    }));
-    setTokens(built);
-  }, [visibleTokens.length, visibleCount, filter, myTokenIds, userAddress]);
+  const tokens = visibleTokens.map((t) => ({
+    ...t,
+    owner: myTokenIds.has(t.id) ? userAddress || "" : "",
+  }));
 
   // Countdown
   const cutEligible = secs === 0;
@@ -536,8 +637,6 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const { writeContractAsync } = useWriteContract();
   const { isLoading: isMiningCut, isSuccess: isCutMined, isError: isCutError } =
     useWaitForTransactionReceipt({ hash: cutTxHash });
-  const { isLoading: isMiningReveal, isSuccess: isRevealMined, isError: isRevealError } =
-    useWaitForTransactionReceipt({ hash: revealTxHash });
 
   useEffect(() => {
     if (cutPending) { setIsSubmittingCut(false); setCutTxHash(undefined); }
@@ -548,34 +647,68 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     if (isCutError) { addToast("Cut transaction failed.", "error"); setIsSubmittingCut(false); setCutTxHash(undefined); }
   }, [isCutMined, isCutError]);
 
-  useEffect(() => {
-    if (isRevealMined) {
-      addToast("Round results revealed!", "success");
-      setIsSubmittingReveal(false);
-      setRevealTxHash(undefined);
-      
-      const aliveTokens = allTokensWithStatus
-        .filter(t => t.status === "alive")
-        .map(t => t.id);
 
-      fetch("/api/refresh-opensea", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: NFT_ADDRESS, chainId, tokenIds: aliveTokens })
-      }).catch(console.error);
+
+  const checkNetwork = async () => {
+    if (walletChainId !== chainId) {
+      if (switchChainAsync) {
+        try {
+          addToast("Switching network...", "info");
+          await switchChainAsync({ chainId });
+          return true;
+        } catch (e: any) {
+          addToast("Failed to switch network", "error");
+          return false;
+        }
+      } else {
+        addToast("Please switch network in your wallet", "error");
+        return false;
+      }
     }
-    if (isRevealError) { addToast("Reveal failed.", "error"); setIsSubmittingReveal(false); setRevealTxHash(undefined); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRevealMined, isRevealError]);
+    return true;
+  };
 
   const handleTriggerCut = async () => {
+    if (!(await checkNetwork())) return;
     try {
       setIsSubmittingCut(true);
-      addToast("Triggering elimination round…", "info");
+      addToast("Fetching current Oracle fee…", "info");
+      
+      const provider = await publicClient!.readContract({
+        address: NFT_ADDRESS as `0x${string}`,
+        abi: NFT_ABI,
+        functionName: "diceProvider",
+      }) as `0x${string}`;
+
+      const fee = await publicClient!.readContract({
+        address: "0x43c8A7B1a85384cabf3D3Fd45a15C01F5b51A42D",
+        abi: parseAbi(["function getFeeV2(address provider, uint32 gasLimit) view returns (uint256)"]),
+        functionName: "getFeeV2",
+        args: [provider, 200000],
+      }) as bigint;
+
+      addToast(`Triggering elimination round (${formatEther(fee)} ETH fee)…`, "info");
+      
+      try {
+        await publicClient!.simulateContract({
+          address: NFT_ADDRESS as `0x${string}`,
+          abi: NFT_ABI,
+          functionName: "triggerCut",
+          value: fee,
+          account: userAddress,
+        });
+      } catch (simError: any) {
+        console.error("Simulation failed:", simError);
+        addToast(`Sim failed: ${simError.shortMessage || simError.message}`, "error");
+        setIsSubmittingCut(false);
+        return;
+      }
+
       const hash = await writeContractAsync({
-        address: NFT_ADDRESS,
+        address: NFT_ADDRESS as `0x${string}`,
         abi: NFT_ABI,
         functionName: "triggerCut",
+        value: fee,
       });
       setCutTxHash(hash);
     } catch (e: any) {
@@ -584,23 +717,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     }
   };
 
-  const handleRevealCut = async () => {
-    try {
-      setIsSubmittingReveal(true);
-      addToast("Revealing round results…", "info");
-      const hash = await writeContractAsync({
-        address: NFT_ADDRESS,
-        abi: NFT_ABI,
-        functionName: "revealCut",
-      });
-      setRevealTxHash(hash);
-    } catch (e: any) {
-      addToast(e.shortMessage || "Reveal failed", "error");
-      setIsSubmittingReveal(false);
-    }
-  };
+
 
   const handleInitGame = async () => {
+    if (!(await checkNetwork())) return;
     try {
       addToast("Initializing game…", "info");
       await writeContractAsync({
@@ -615,6 +735,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   };
 
   const handleClaim = async (tokenId: number) => {
+    if (!(await checkNetwork())) return;
     try {
       addToast(`Claiming prize for #${tokenId}…`, "info");
       const hash = await writeContractAsync({
@@ -623,7 +744,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         functionName: "claimPrize",
         args: [BigInt(tokenId)],
       });
-      addToast(`Claimed! tx: ${hash.slice(0, 10)}…`, "success");
+      addToast(`Claim broadcasted! tx: ${hash.slice(0, 10)}…`, "success");
+      
+      // Optimistically update UI so user doesn't double-click
+      setClaimedSet((prev) => new Set(prev).add(tokenId));
     } catch (e: any) {
       addToast(e.shortMessage || "Claim failed", "error");
     }
@@ -631,7 +755,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
   const myWinners = tokens.filter(
     (t) =>
-      (t.status === "winner") &&
+      (t.status === "winner" || t.status === "claimed") &&
       userAddress &&
       t.owner.toLowerCase() === userAddress.toLowerCase()
   );
@@ -648,7 +772,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
     : "phase-battle";
 
   const phaseLabel = gameFinished
-    ? "Game Over — Final 4 determined"
+    ? "Game Finished — Final 4 determined"
     : mintingOpen
     ? "Mint Open — Tokens available on /mint"
     : cutPending
@@ -660,16 +784,49 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   return (
     <div className="page-root">
       {/* Breadcrumb */}
-      <div className="breadcrumb">
+      <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ color: "var(--text-primary)" }}>Arena</span>
         <span className="breadcrumb-sep">/</span>
         <span>Round {roundCount?.toString() ?? "0"}</span>
+        <div style={{
+          background: chainId === 46630 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
+          color: "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          marginLeft: "auto"
+        }}>
+          {chainId === 46630 ? "ROBINHOOD" : "BASE"}
+        </div>
       </div>
 
       {/* Phase banner */}
-      <div className={`phase-banner ${phaseClass}`}>
-        <span>●</span>
-        <span>{phaseLabel}</span>
+      <div className={`phase-banner ${phaseClass}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <span>●</span>
+          <span>{phaseLabel}</span>
+        </div>
+        {mintingOpen && (
+          <a
+            href={`/mint/${address}`}
+            style={{
+              background: "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              padding: "4px 12px",
+              borderRadius: "4px",
+              color: "inherit",
+              textDecoration: "none",
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Go to Mint Page →
+          </a>
+        )}
       </div>
 
       {/* Stats row */}
@@ -677,12 +834,12 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         <div className="stat-cell">
           <span className="stat-label">Prize Pool</span>
           <span className="stat-value">{formatEth(prizePool as bigint | undefined)}</span>
-          <span className="stat-unit">ETH</span>
+          <span className="stat-unit">{nativeToken(chainId)}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Prize / Winner</span>
           <span className="stat-value">{formatEth(prizePerWinner as bigint | undefined)}</span>
-          <span className="stat-unit">ETH each</span>
+          <span className="stat-unit">{nativeToken(chainId)} each</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Tokens</span>
@@ -696,7 +853,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         </div>
         <div className="stat-cell">
           <span className="stat-label">Active Players</span>
-          <span className="stat-value">{activePlayers ?? "—"}</span>
+          <span className="stat-value">{activePlayers !== null ? activePlayers : (myTokenIds.size > 0 ? "1+" : "—")}</span>
           <span className="stat-unit">Wallets holding</span>
         </div>
         <div className="stat-cell">
@@ -729,59 +886,71 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
               color: "var(--text-muted)",
             }}
           >
-            Elimination Cut
+            {gameFinished ? "Game Status" : "Elimination Cut"}
           </div>
 
-          <div className="countdown-display">
-            <div className={`countdown ${cutEligible ? "ready" : ""}`}>
-              {countdownText}
+          {gameFinished ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px', padding: '12px 0' }}>
+              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)', fontSize: '28px', letterSpacing: '0.1em', fontWeight: 700, textShadow: '0 0 20px rgba(234, 179, 8, 0.4)' }}>
+                GAME FINISHED
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                The final 4 have split the pot
+              </div>
             </div>
-            <span className="countdown-label">until eligible</span>
-          </div>
-
-          {cutPending ? (
-            <button
-              className="btn btn-primary btn-large"
-              style={{ width: "100%" }}
-              onClick={handleRevealCut}
-              disabled={!userAddress || isSubmittingReveal || isMiningReveal}
-            >
-              {isMiningReveal ? "Confirming…" : isSubmittingReveal ? "Broadcasting…" : "Reveal Cut Results"}
-            </button>
           ) : (
-            <button
-              className="btn btn-primary btn-large"
-              style={{ width: "100%" }}
-              onClick={handleTriggerCut}
-              disabled={
-                !cutEligible ||
-                !userAddress ||
-                !!gameFinished ||
-                isSubmittingCut ||
-                isMiningCut
-              }
-            >
-              {isMiningCut
-                ? "Confirming…"
-                : isSubmittingCut
-                ? "Broadcasting…"
-                : "Trigger Cut"}
-            </button>
-          )}
+            <>
+              <div className="countdown-display">
+                <div className={`countdown ${cutEligible ? "ready" : ""}`}>
+                  {countdownText}
+                </div>
+                <span className="countdown-label">until eligible</span>
+              </div>
 
-          {cutPending && (
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9,
-                color: "var(--gold)",
-                textAlign: "center",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              Cut committed. Reveal after 1 block.
-            </p>
+              {cutPending ? (
+                <button
+                  className="btn btn-primary btn-large"
+                  style={{ width: "100%", opacity: 0.6 }}
+                  disabled={true}
+                >
+                  Waiting for Dice Oracle...
+                </button>
+              ) : (
+                <button
+                  className="btn btn-primary btn-large"
+                  style={{ width: "100%" }}
+                  onClick={handleTriggerCut}
+                  disabled={
+                    !userAddress ||
+                    (!cutEligible && walletChainId === chainId) ||
+                    isSubmittingCut ||
+                    isMiningCut
+                  }
+                >
+                  {!userAddress ? "Connect Wallet" : walletChainId !== chainId ? `Switch to ${chainId === 46630 ? "Robinhood" : "Base"}` : isMiningCut
+                    ? "Confirming…"
+                    : isSubmittingCut
+                    ? "Broadcasting…"
+                    : "Trigger Cut"}
+                </button>
+              )}
+
+              {cutPending && (
+                <p
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9,
+                    color: "var(--gold)",
+                    textAlign: "center",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    margin: 0
+                  }}
+                >
+                  Cut requested. Results will be revealed automatically via Dice Protocol.
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -797,7 +966,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 color: "var(--gold)",
               }}
             >
-              Claim Prize — {formatEth(prizePerWinner as bigint | undefined)} ETH each
+              Claim Prize — {formatEth(prizePerWinner as bigint | undefined)} {nativeToken(chainId)} each
             </div>
             <div className="claim-tokens-list">
               {myWinners.map((t) => (
@@ -805,10 +974,11 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                   <span className="claim-token-id">#{t.id}</span>
                   <button
                     className="btn btn-primary"
-                    style={{ padding: "6px 14px", fontSize: 9 }}
+                    style={{ padding: "6px 14px", fontSize: 9, opacity: t.status === "claimed" ? 0.5 : 1 }}
                     onClick={() => handleClaim(t.id)}
+                    disabled={t.status === "claimed"}
                   >
-                    Claim
+                    {t.status === "claimed" ? "Claimed" : "Claim"}
                   </button>
                 </div>
               ))}
@@ -817,8 +987,8 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         )}
 
         {/* Artist init panel */}
-        {isArtist && !mintingOpen && !gameInitialized && (
-          <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between' }}>
+        {isArtist && !gameInitialized && (
+          <div className="admin-section" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'space-between', border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
             <div
               style={{
                 fontFamily: "var(--font-mono)",
@@ -828,15 +998,40 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 color: "var(--red)",
               }}
             >
-              Init Game (Artist)
+              Creator Admin: Initialize Arena
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-              Mint has closed. Initialize the arena to begin elimination rounds.
-            </p>
+            
+            {mintOpenTime && mintCloseTime ? (
+              // Legacy V1/V2 Factory logic
+              mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime) ? (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Minting has not started yet. Game cannot be initialized.
+                </p>
+              ) : mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10 ? (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Minting is currently open. You can initialize the arena early once 10 tokens are minted.
+                </p>
+              ) : (
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Mint has closed or early initialization is unlocked. Initialize the arena to begin elimination rounds.
+                </p>
+              )
+            ) : (
+              // Native SeaDrop Standalone logic (OpenSea Studio manages schedules)
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Once your drop has concluded on OpenSea Studio, initialize the arena to mathematically lock the supply and start the survival engine. Requires at least 1 mint.
+              </p>
+            )}
+
             <button
               className="btn btn-primary btn-large"
               style={{ width: "100%" }}
               onClick={handleInitGame}
+              disabled={Boolean(
+                (mintOpenTime && Math.floor(Date.now() / 1000) < Number(mintOpenTime)) ||
+                (mintCloseTime && Math.floor(Date.now() / 1000) < Number(mintCloseTime) && Number(totalSupply || 0) < 10) ||
+                (Number(totalSupply || 0) === 0)
+              )}
             >
               Initialize Arena
             </button>
@@ -903,7 +1098,11 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                   >
                     <div className="nft-card-image">
                       {t.imageUrl ? (
-                        <img src={t.imageUrl} alt={`#${t.id}`} loading="lazy" />
+                        <img
+                          src={t.imageUrl}
+                          alt={`#${t.id}`}
+                          loading="lazy"
+                        />
                       ) : (
                         <div
                           style={{
@@ -957,7 +1156,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             <span className="sidebar-label">Status</span>
             <span className="sidebar-value">
               {gameFinished
-                ? "Game Over"
+                ? "Game Finished"
                 : mintingOpen
                 ? "Minting"
                 : gameInitialized
@@ -1048,7 +1247,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
       {/* How it works */}
       <div style={{ borderTop: "1px solid var(--border)", padding: "48px 16px" }}>
-        <GameSummary />
+        <GameSummary poolSharePercent={prizePoolSharePercent ? Number(prizePoolSharePercent) : undefined} />
       </div>
 
       {/* Toasts */}

@@ -1,4 +1,4 @@
-export const GameSummary = ({ hideHowItWorks }: { hideHowItWorks?: boolean }) => {
+export const GameSummary = ({ hideHowItWorks, poolSharePercent }: { hideHowItWorks?: boolean, poolSharePercent?: number }) => {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", width: "100%" }}>
       {!hideHowItWorks && (
@@ -10,7 +10,7 @@ export const GameSummary = ({ hideHowItWorks }: { hideHowItWorks?: boolean }) =>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1, border: "1px solid var(--border)", marginBottom: 48 }}>
             {[
-              { n: "01", title: "Mint", body: "Collectors mint open edition tokens during the mint window. 45% of each mint goes to the prize pool." },
+              { n: "01", title: "Mint", body: `Collectors mint open edition tokens during the mint window. ${poolSharePercent ? poolSharePercent + "%" : "A percentage"} of each mint goes to the prize pool.` },
               { n: "02", title: "Cuts", body: "After mint closes, the artist initialises the game. Anyone triggers periodic elimination rounds via commit-reveal." },
               { n: "03", title: "Survive", body: "Each cut eliminates roughly half the remaining tokens. If your token is eliminated, you can buy an alive token on the secondary market to stay in the game." },
               { n: "04", title: "Claim", body: "The final 4 surviving token holders share the entire prize pool equally. Claim at any time after the game ends." },

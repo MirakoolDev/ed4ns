@@ -1,8 +1,8 @@
 # ed4ns — Survivor NFT Game
 
-An open-edition NFT survival game. Collectors mint during the Open Edition window.
-Once minting closes, the game begins — every round a commit-reveal blockhash mechanism eliminates ~half the alive tokens.
-The **final 4 survivors** split the ETH prize pool.
+An open-edition NFT elimination game. Collectors mint during the Open Edition window.
+Once minting closes, the arena begins — every round a commit-reveal blockhash mechanism eliminates exactly half the active tokens.
+The **final 4 remaining tokens** split the ETH prize pool.
 
 **Key properties:**
 - **Zero-Cost Randomness:** Uses a commit-reveal future blockhash mechanism, would replace with chainlink vrf in the future.
@@ -26,7 +26,7 @@ The **final 4 survivors** split the ETH prize pool.
                                         |— claimPrize()   → Pays actual survivors
 ```
 
-**Lazy Evaluation Model:** The contract stores only one seed per round. Token alive/eliminated status
+**Lazy Evaluation Model:** The contract stores only one seed per round. Token active/eliminated status
 is computed mathematically on read — no per-token writes during cuts, no array scans.
 
 ---
@@ -103,11 +103,11 @@ npx hardhat run scripts/deploy-standalone.js --network sepolia
 
 | Phase | Trigger | What happens |
 |-------|---------|--------------|
-| **Minting** | Public `mint(quantity)` | Users mint tokens. Proceeds auto-split (e.g. 45% pool, 45% artist, 10% protocol). |
+| **Minting** | Public `mint(quantity)` | Users mint tokens. Proceeds auto-split (e.g. 45% pool, 50% artist, 5% protocol). Secondary royalties sent to the contract also auto-split, growing the pool! |
 | **Initialization** | Artist calls `initializeGame()` | Minting is over, game clock starts. |
 | **Commit** | Anyone calls `triggerCut()` | Commits to the next block's hash. |
-| **Reveal (Elimination)** | Anyone calls `revealCut()` | Resolves the random seed. ~half of the tokens are eliminated. Token status computed mathematically on read. |
-| **Endgame** | Pool reaches ≤4 tokens | `gameFinished = true`. Winners can claim. |
+| **Reveal (Elimination)** | Anyone calls `revealCut()` | Resolves the random seed. Exactly half the active tokens are eliminated. Token status computed mathematically on read. |
+| **Endgame** | Pool reaches ≤4 tokens | `gameFinished = true`. Final holders can claim. |
 | **Claim** | Each winner calls `claimPrize(tokenId)` | Prize = `prizePool / actualSurvivors`. |
 
 ---
@@ -129,7 +129,7 @@ Each token's `tokenURI()` returns dynamic JSON containing:
 
 - **`image`** — raw artwork URL (renders natively everywhere: OpenSea, wallets, browsers)
 - **`animation_url`** — on-chain SVG border frame:
-  - 🟢 Green — Alive
+  - 🟢 Green — Active
   - 🔴 Red — Eliminated
   - ⬜ White — Winner
   - 🟣 Purple — Claimed

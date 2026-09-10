@@ -8,22 +8,14 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useChainId,
+  useSwitchChain,
+  useEnsName,
 } from "wagmi";
+import { mainnet } from "wagmi/chains";
 import { NFT_ABI } from "@/abi";
 import { GameSummary } from "@/components/GameSummary";
 import { formatEther } from "viem";
-import { getExplorerUrl } from "@/config";
-
-const resolveGatewayUrl = (url: string): string => {
-  if (!url) return "";
-  if (url.startsWith("ipfs://")) {
-    if (url.includes(".4everland.store")) return url.replace("ipfs://", "https://");
-    return url.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
-  }
-  if (url.startsWith("ar://"))
-    return url.replace("ar://", "https://arweave.net/");
-  return url;
-};
+import { getExplorerUrl, STANDALONE_GAMES, nativeToken, artworkImageSrc } from "@/config";
 
 interface MintEvent {
   address: string;
@@ -32,14 +24,48 @@ interface MintEvent {
   blockAgo: number;
 }
 
-export default function Page({ params }: { params: Promise<{ address: string }> }) {
+export default function Page({ params, searchParams }: { params: Promise<{ address: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { address: NFT_ADDRESS } = use(params);
+  const unwrappedSearchParams = use(searchParams);
   const { address: userAddress } = useAccount();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
+  const chainId = unwrappedSearchParams.chainId ? Number(unwrappedSearchParams.chainId) : walletChainId;
+  const { switchChainAsync } = useSwitchChain();
+
+  // Dynamic OpenSea Redirect for standalone drops
+  useEffect(() => {
+    if (STANDALONE_GAMES.includes(NFT_ADDRESS)) {
+      const slug = localStorage.getItem(`opensea_slug_${NFT_ADDRESS}`);
+      if (slug) {
+        window.location.href = `https://opensea.io/collection/${slug}/overview`;
+        return;
+      }
+      fetch(`/api/opensea-slug?address=${NFT_ADDRESS}&chainId=${chainId || 8453}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.slug) {
+            window.location.href = `https://opensea.io/collection/${data.slug}/overview`;
+          } else {
+            window.location.href = `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`;
+          }
+        }).catch(() => {
+          window.location.href = `https://opensea.io/assets?search[query]=${NFT_ADDRESS}`;
+        });
+    }
+  }, [NFT_ADDRESS, chainId]);
+
+  if (STANDALONE_GAMES.includes(NFT_ADDRESS)) {
+    return (
+      <div className="page-root" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <div className="spinner" />
+        <span style={{ marginLeft: 16, fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>Redirecting to OpenSea...</span>
+      </div>
+    );
+  }
+
   const [qty, setQty] = useState(1);
   const [isMinting, setIsMinting] = useState(false);
   const [mintTxHash, setMintTxHash] = useState<`0x${string}` | undefined>();
-  const [artworkUrl, setArtworkUrl] = useState("");
   const [toasts, setToasts] = useState<
     { id: number; msg: string; type: string }[]
   >([]);
@@ -53,16 +79,18 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   // Contract reads
   const { data: results, refetch: refetchSupply } = useReadContracts({
     contracts: [
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "name" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "collectionDescription" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintOpenTime" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artistSharePercent" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePoolSharePercent" },
-      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePool" },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "name", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "collectionDescription", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artworkURI", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintPrice", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintOpenTime", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "mintCloseTime", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "totalSupply", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artistSharePercent", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePoolSharePercent", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "prizePool", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "artist", chainId },
+      { address: NFT_ADDRESS as `0x${string}`, abi: NFT_ABI, functionName: "protocolSharePercent", chainId },
     ],
     query: { refetchInterval: 5000 },
   });
@@ -77,12 +105,15 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   const artistShare = results?.[7]?.result as bigint | undefined;
   const poolShare = results?.[8]?.result as bigint | undefined;
   const prizePool = results?.[9]?.result as bigint | undefined;
+  const artistAddress = results?.[10]?.result as string | undefined;
+  const protocolShare = results?.[11]?.result as bigint | undefined;
 
-  // Resolve artwork
-  useEffect(() => {
-    if (!artworkURI) return;
-    setArtworkUrl(resolveGatewayUrl(artworkURI as string));
-  }, [artworkURI]);
+  const { data: ensName } = useEnsName({ address: artistAddress as `0x${string}` | undefined, chainId: mainnet.id });
+
+  // Route artwork through our own domain (see /api/artwork-image) instead of
+  // linking directly to a third-party IPFS gateway — besides CORS/latency,
+  // ad blockers commonly block wildcard IPFS-gateway subdomains outright.
+  const artworkUrl = artworkURI ? artworkImageSrc(artworkURI as string) : "";
 
   // Live countdown hook
   const [, setTick] = useState(0);
@@ -130,6 +161,20 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
   const handleMint = async () => {
     if (!mintPrice || !userAddress) return;
+    if (walletChainId !== chainId) {
+      if (switchChainAsync) {
+        try {
+          addToast("Switching network...", "info");
+          await switchChainAsync({ chainId });
+        } catch (e: any) {
+          addToast("Failed to switch network", "error");
+          return;
+        }
+      } else {
+        addToast("Please switch network in your wallet", "error");
+        return;
+      }
+    }
     try {
       setIsMinting(true);
       addToast(`Minting ${qty} token${qty > 1 ? "s" : ""}…`, "info");
@@ -149,10 +194,10 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   };
 
   const priceEth = mintPrice !== undefined
-    ? Number(formatEther(mintPrice as bigint)).toString()
-    : "0.01";
+    ? Number(formatEther(mintPrice as bigint)).toFixed(4)
+    : "0.0100";
   const totalEth = mintPrice !== undefined
-    ? Number(formatEther((mintPrice as bigint) * BigInt(qty))).toString()
+    ? Number(formatEther((mintPrice as bigint) * BigInt(qty))).toFixed(4)
     : (0.01 * qty).toString();
 
   // Simulated recent mints for demo
@@ -161,8 +206,8 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
   return (
     <div className="page-root">
       {/* Breadcrumb */}
-      <div className="breadcrumb">
-        <Link href={`/arena/${NFT_ADDRESS}`}>Arena</Link>
+      <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Link href={`/arena/${NFT_ADDRESS}?chainId=${chainId}`}>Arena</Link>
         <span className="breadcrumb-sep">/</span>
         <span>Mint</span>
         {totalSupply !== undefined && (
@@ -173,6 +218,18 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             </span>
           </>
         )}
+        <div style={{
+          background: chainId === 46630 ? "rgba(0,192,135,0.9)" : "rgba(0,82,255,0.9)",
+          color: "white",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontSize: 8,
+          fontFamily: "var(--font-mono)",
+          fontWeight: 700,
+          marginLeft: "auto"
+        }}>
+          {chainId === 46630 ? "ROBINHOOD" : "BASE"}
+        </div>
       </div>
 
       {/* Stats row */}
@@ -180,7 +237,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         <div className="stat-cell">
           <span className="stat-label">Mint Price</span>
           <span className="stat-value">{priceEth}</span>
-          <span className="stat-unit">ETH on Base</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 46630 ? "Robinhood" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Total Minted</span>
@@ -192,14 +249,14 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
         <div className="stat-cell">
           <span className="stat-label">Prize Pool</span>
           <span className="stat-value">
-            {prizePool ? Number(formatEther(prizePool as bigint)).toFixed(3) : "0.000"}
+            {prizePool ? parseFloat(Number(formatEther(prizePool as bigint)).toFixed(4)) : "0"}
           </span>
-          <span className="stat-unit">ETH on Base</span>
+          <span className="stat-unit">{nativeToken(chainId)} on {chainId === 46630 ? "Robinhood" : "Base"}</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">Payout Split</span>
-          <span className="stat-value">{artistShare?.toString() || "50"} / {poolShare?.toString() || "50"}</span>
-          <span className="stat-unit">Artist / Pool</span>
+          <span className="stat-value">{artistShare?.toString() || "50"} / {poolShare?.toString() || "50"} / {protocolShare?.toString() || "10"}</span>
+          <span className="stat-unit">Artist / Pool / $PFWA</span>
         </div>
         <div className="stat-cell">
           <span className="stat-label">
@@ -281,14 +338,22 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
           {/* Title block */}
           <div className="mint-panel-section">
             <div className="mint-title">{name || "Loading..."}</div>
-            <div className="mint-subtitle">{desc || "—"}</div>
+            {artistAddress && (
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 8 }}>
+                <span style={{ opacity: 0.6 }}>by </span>
+                <a href={getExplorerUrl(artistAddress, chainId)} target="_blank" rel="noopener noreferrer" className="address-link" style={{ color: "var(--text-primary)" }}>
+                  {ensName || `${artistAddress.slice(0, 6)}…${artistAddress.slice(-4)}`}
+                </a>
+              </div>
+            )}
+            <div className="mint-subtitle" style={{ marginTop: 16 }}>{desc || "—"}</div>
           </div>
 
           {/* Mint controls */}
           <div className="mint-panel-section">
             <div className="mint-row">
               <span className="mint-row-label">Mint Price</span>
-              <span className="mint-row-value">{priceEth} ETH</span>
+              <span className="mint-row-value">{priceEth} {nativeToken(chainId)}</span>
             </div>
             <div className="mint-row">
               <span className="mint-row-label">Quantity</span>
@@ -330,6 +395,31 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 </button>
               </div>
             </div>
+            <div className="mint-row" style={{ borderBottom: "none", marginTop: "-8px", paddingBottom: "12px" }}>
+              <span className="mint-row-label"></span>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {[5, 10, 20].map(n => (
+                  <button 
+                    key={n}
+                    onClick={() => setQty(n)}
+                    disabled={isMinting || isMiningMint || hasEnded}
+                    style={{
+                      background: qty === n ? "var(--text-primary)" : "var(--card-bg)",
+                      color: qty === n ? "var(--bg)" : "var(--text-primary)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "4px",
+                      padding: "2px 8px",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "10px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="mint-row" style={{ borderTop: "1px solid var(--border)" }}>
               <span
                 className="mint-row-label"
@@ -341,28 +431,38 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
                 className="mint-row-value"
                 style={{ fontSize: 18 }}
               >
-                {totalEth} ETH
+                {totalEth} {nativeToken(chainId)}
               </span>
             </div>
 
-            <button
-              className="btn btn-primary btn-large"
-              style={{ width: "100%", marginTop: 16 }}
-              onClick={handleMint}
-              disabled={!userAddress || !isOpen || isMinting || isMiningMint}
-            >
-              {!userAddress
-                ? "Connect Wallet"
-                : hasEnded
-                ? "Mint Closed"
-                : !isOpen
-                ? "Starting Soon…"
-                : isMiningMint
-                ? "Confirming…"
-                : isMinting
-                ? "Broadcasting…"
-                : `Mint ${qty > 1 ? `${qty} Tokens` : "Token"}`}
-            </button>
+            {hasEnded ? (
+              <Link
+                href={`/arena/${NFT_ADDRESS}?chainId=${chainId}`}
+                className="btn btn-primary btn-large"
+                style={{ width: "100%", marginTop: 16, display: "flex", justifyContent: "center" }}
+              >
+                Mint Closed — Go to Arena
+              </Link>
+            ) : (
+              <button
+                className="btn btn-primary btn-large"
+                style={{ width: "100%", marginTop: 16 }}
+                onClick={handleMint}
+                disabled={!userAddress || !isOpen || isMinting || isMiningMint}
+              >
+                {!userAddress
+                  ? "Connect Wallet"
+                  : walletChainId !== chainId
+                  ? `Switch to ${chainId === 46630 ? "Robinhood" : "Base"}`
+                  : !isOpen
+                  ? "Starting Soon…"
+                  : isMiningMint
+                  ? "Confirming…"
+                  : isMinting
+                  ? "Broadcasting…"
+                  : `Mint ${qty > 1 ? `${qty} Tokens` : "Token"}`}
+              </button>
+            )}
 
             {!userAddress && (
               <p
@@ -386,7 +486,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
             <div className="mint-row">
               <span className="mint-row-label">Pool split</span>
               <span className="mint-row-value" style={{ fontSize: 11 }}>
-                {artistShare?.toString() || "50"}% artist · {poolShare?.toString() || "50"}% prize pool
+                {artistShare?.toString() || "50"}% artist · {poolShare?.toString() || "50"}% prize pool · {protocolShare?.toString() || "10"}% $pfwa
               </span>
             </div>
             <div className="mint-row">
@@ -458,7 +558,7 @@ export default function Page({ params }: { params: Promise<{ address: string }> 
 
       {/* How it works */}
       <div style={{ borderTop: "1px solid var(--border)", padding: "48px 16px" }}>
-        <GameSummary />
+        <GameSummary poolSharePercent={poolShare ? Number(poolShare) : undefined} />
       </div>
 
       {/* Toasts */}

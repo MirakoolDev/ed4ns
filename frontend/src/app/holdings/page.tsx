@@ -10,20 +10,10 @@ import {
 } from "wagmi";
 import { formatEther } from "viem";
 import Link from "next/link";
-import { FACTORY_ADDRESS, getAlchemyUrl, getExplorerUrl } from "@/config";
+import { FACTORY_ADDRESS_BASE, FACTORY_ADDRESS_V2_BASE, FACTORY_ADDRESS_ROBINHOOD, STANDALONE_GAMES, getAlchemyUrl, getExplorerUrl, artworkImageSrc } from "@/config";
+import { base } from "wagmi/chains";
 import { FACTORY_ABI, NFT_ABI } from "@/abi";
 import { computeAllStatuses } from "@/lib/gameEngine";
-
-const resolveGatewayUrl = (url: string): string => {
-  if (!url) return "";
-  if (url.startsWith("ipfs://")) {
-    if (url.includes(".4everland.store")) return url.replace("ipfs://", "https://");
-    return url.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
-  }
-  if (url.startsWith("ar://"))
-    return url.replace("ar://", "https://arweave.net/");
-  return url;
-};
 
 const STATUS_PILL: Record<string, string> = {
   alive:      "pill-alive",
@@ -47,7 +37,6 @@ interface TokenData {
 }
 
 function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: string; userAddress: string; chainId: number }) {
-  const [resolvedArtwork, setResolvedArtwork] = useState("");
   const [ownedTokenIds, setOwnedTokenIds] = useState<number[]>([]);
   const [isScanning, setIsScanning] = useState(true);
 
@@ -84,20 +73,10 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
     ? Number(endTokenId || 0n) - startId + 1
     : 0;
 
-  // Resolve artwork
-  useEffect(() => {
-    if (!artworkURI) return;
-    const url = resolveGatewayUrl(artworkURI);
-    (async () => {
-      try {
-        const r = await fetch(url);
-        const j = await r.json();
-        setResolvedArtwork(resolveGatewayUrl(j.image || url));
-      } catch {
-        setResolvedArtwork(url);
-      }
-    })();
-  }, [artworkURI]);
+  // Route artwork through our own domain (see /api/artwork-image) instead of
+  // linking directly to a third-party IPFS gateway — besides CORS/latency,
+  // ad blockers commonly block wildcard IPFS-gateway subdomains outright.
+  const resolvedArtwork = artworkURI ? artworkImageSrc(artworkURI) : "";
 
   // ── Owned token IDs via Alchemy asset transfers (no ownerOf scan) ──────────
   useEffect(() => {
@@ -108,47 +87,69 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
     const fetch_owned = async () => {
       try {
         const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
+        let alchemySuccess = false;
+
         if (alchemyKey) {
-          const url = getAlchemyUrl(alchemyKey, chainId);
-          const owned = new Set<number>();
-          let pageKey: string | undefined;
-          do {
-            const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: 1, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
-                params: [{ fromBlock: "0x0", toBlock: "latest", toAddress: userAddress,
-                  contractAddresses: [gameAddress], category: ["erc721"],
-                  withMetadata: false, excludeZeroValue: true, maxCount: "0x3e8",
-                  ...(pageKey ? { pageKey } : {}) }] }) });
-            const json = await res.json();
-            for (const t of json?.result?.transfers ?? []) if (t.tokenId) owned.add(Number(BigInt(t.tokenId)));
-            pageKey = json?.result?.pageKey;
-          } while (pageKey && !cancelled);
-          // Remove sent tokens
-          let outPage: string | undefined;
-          do {
-            const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: 2, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
-                params: [{ fromBlock: "0x0", toBlock: "latest", fromAddress: userAddress,
-                  contractAddresses: [gameAddress], category: ["erc721"],
-                  withMetadata: false, excludeZeroValue: true, maxCount: "0x3e8",
-                  ...(outPage ? { pageKey: outPage } : {}) }] }) });
-            const json = await res.json();
-            for (const t of json?.result?.transfers ?? []) if (t.tokenId) owned.delete(Number(BigInt(t.tokenId)));
-            outPage = json?.result?.pageKey;
-          } while (outPage && !cancelled);
-          if (!cancelled) setOwnedTokenIds([...owned].sort((a, b) => a - b));
-        } else if (publicClient) {
+          try {
+            const url = getAlchemyUrl(alchemyKey, chainId);
+            const owned = new Set<number>();
+            let pageKey: string | undefined;
+            do {
+              const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: 1, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
+                  params: [{ fromBlock: "0x0", toBlock: "latest", toAddress: userAddress,
+                    contractAddresses: [gameAddress], category: ["erc721"],
+                    withMetadata: false, excludeZeroValue: true, maxCount: "0x3e8",
+                    ...(pageKey ? { pageKey } : {}) }] }) });
+              const json = await res.json();
+              if (json.error) throw new Error(json.error.message);
+              for (const t of json?.result?.transfers ?? []) if (t.tokenId) owned.add(Number(BigInt(t.tokenId)));
+              pageKey = json?.result?.pageKey;
+            } while (pageKey && !cancelled);
+            
+            // Remove sent tokens
+            let outPage: string | undefined;
+            do {
+              const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: 2, jsonrpc: "2.0", method: "alchemy_getAssetTransfers",
+                  params: [{ fromBlock: "0x0", toBlock: "latest", fromAddress: userAddress,
+                    contractAddresses: [gameAddress], category: ["erc721"],
+                    withMetadata: false, excludeZeroValue: true, maxCount: "0x3e8",
+                    ...(outPage ? { pageKey: outPage } : {}) }] }) });
+              const json = await res.json();
+              if (json.error) throw new Error(json.error.message);
+              for (const t of json?.result?.transfers ?? []) if (t.tokenId) owned.delete(Number(BigInt(t.tokenId)));
+              outPage = json?.result?.pageKey;
+            } while (outPage && !cancelled);
+            
+            if (!cancelled) setOwnedTokenIds([...owned].sort((a, b) => a - b));
+            alchemySuccess = true;
+          } catch (e) {
+            console.warn("Alchemy fetch failed for game", gameAddress, e);
+          }
+        }
+        
+        if (!alchemySuccess && publicClient) {
           // Fallback: ownerOf only for owned tokens (small set expected)
           const all = Array.from({ length: totalCount }, (_, i) => startId + i);
-          const owners = await Promise.all(all.map(id =>
-            publicClient.readContract({ address: addr, abi: NFT_ABI, functionName: "ownerOf", args: [BigInt(id)] })
-              .then(o => ({ id, owned: (o as string).toLowerCase() === userAddress.toLowerCase() }))
-              .catch(() => ({ id, owned: false }))
-          ));
+          const chunkSize = 10;
+          const owners = [];
+          
+          for (let i = 0; i < all.length; i += chunkSize) {
+            const chunk = all.slice(i, i + chunkSize);
+            const chunkOwners = await Promise.all(chunk.map(id =>
+              publicClient.readContract({ address: addr, abi: NFT_ABI, functionName: "ownerOf", args: [BigInt(id)] })
+                .then(o => ({ id, owned: (o as string).toLowerCase() === userAddress.toLowerCase() }))
+                .catch(() => ({ id, owned: false }))
+            ));
+            owners.push(...chunkOwners);
+            if (cancelled) return;
+            await new Promise(r => setTimeout(r, 100)); // Respect rate limits
+          }
           if (!cancelled) setOwnedTokenIds(owners.filter(r => r.owned).map(r => r.id));
         }
       } catch (e) {
-        console.warn("Holdings scan failed:", e);
+        console.warn("Fatal error in Holdings scan:", e);
       } finally {
         if (!cancelled) setIsScanning(false);
       }
@@ -211,7 +212,7 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
         <div className="holdings-header">
           <div>
-            <Link href={`/arena/${gameAddress}`} className="game-title">
+            <Link href={`/arena/${gameAddress}?chainId=${chainId}`} className="game-title">
               {gameName || `Game ${gameAddress.slice(0, 6)}…`}
             </Link>
             <div className="game-contract">
@@ -227,11 +228,8 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Link href={`/arena/${gameAddress}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
+          <Link href={`/arena/${gameAddress}?chainId=${chainId}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
             Arena
-          </Link>
-          <Link href={`/claim/${gameAddress}`} className="btn btn-outline" style={{ fontSize: 9, padding: "4px 12px" }}>
-            Claim
           </Link>
         </div>
       </div>
@@ -246,7 +244,11 @@ function GameHoldings({ gameAddress, userAddress, chainId }: { gameAddress: stri
           >
             <div className="nft-card-image">
               {t.imageUrl ? (
-                <img src={t.imageUrl} alt={`#${t.id}`} loading="lazy" />
+                <img
+                  src={t.imageUrl}
+                  alt={`#${t.id}`}
+                  loading="lazy"
+                />
               ) : (
                 <div
                   style={{
@@ -282,14 +284,42 @@ export default function HoldingsPage() {
   const { address: userAddress } = useAccount();
   const chainId = useChainId();
 
-  // Fetch all games from factory
-  const { data: gamesData } = useReadContract({
-    address: FACTORY_ADDRESS as `0x${string}`,
+  // Fetch all games from both chains
+  const { data: gamesDataV1Base } = useReadContract({
+    address: FACTORY_ADDRESS_BASE ? (FACTORY_ADDRESS_BASE as `0x${string}`) : undefined,
     abi: FACTORY_ABI,
     functionName: "getGames",
+    chainId: base.id,
   });
 
-  const games = (gamesData as string[]) || [];
+  const { data: gamesDataV2Base } = useReadContracts({
+    contracts: FACTORY_ADDRESS_V2_BASE.map((addr) => ({
+      address: addr,
+      abi: FACTORY_ABI,
+      functionName: "getGames",
+      chainId: base.id,
+    })),
+  });
+
+  const { data: gamesDataV1Robinhood } = useReadContract({
+    address: FACTORY_ADDRESS_ROBINHOOD ? (FACTORY_ADDRESS_ROBINHOOD as `0x${string}`) : undefined,
+    abi: FACTORY_ABI,
+    functionName: "getGames",
+    chainId: 46630,
+  });
+
+  const gamesV1Base = (gamesDataV1Base as string[]) || [];
+  const gamesV2Base = gamesDataV2Base 
+    ? gamesDataV2Base.flatMap((res) => (res.status === 'success' ? (res.result as string[]) : [])) 
+    : [];
+  const gamesV1Robinhood = (gamesDataV1Robinhood as string[]) || [];
+
+  const allGames = [
+    ...gamesV1Base.map(addr => ({ address: addr, chainId: base.id })),
+    ...gamesV2Base.map(addr => ({ address: addr, chainId: base.id })),
+    ...gamesV1Robinhood.map(addr => ({ address: addr, chainId: 46630 })),
+    ...(STANDALONE_GAMES || []).map(addr => ({ address: addr, chainId: base.id })),
+  ];
 
   return (
     <div className="page-root">
@@ -314,7 +344,7 @@ export default function HoldingsPage() {
           My Holdings
         </h1>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 4 }}>
-          Tokens across {games.length} game{games.length !== 1 ? "s" : ""}
+          Tokens across {allGames.length} game{allGames.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -344,7 +374,7 @@ export default function HoldingsPage() {
             Connect your wallet to see your tokens across all games.
           </p>
         </div>
-      ) : games.length === 0 ? (
+      ) : allGames.length === 0 ? (
         <div
           style={{
             display: "flex",
@@ -369,8 +399,8 @@ export default function HoldingsPage() {
         </div>
       ) : (
         <div>
-          {games.map((g) => (
-            <GameHoldings key={g} gameAddress={g} userAddress={userAddress} chainId={chainId} />
+          {allGames.map((g) => (
+            <GameHoldings key={g.address} gameAddress={g.address} userAddress={userAddress} chainId={g.chainId} />
           ))}
         </div>
       )}

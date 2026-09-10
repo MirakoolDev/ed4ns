@@ -1,0 +1,5 @@
+seadrop/=lib/seadrop/src/
+utility-contracts/=lib/seadrop/lib/utility-contracts/src/
+openzeppelin-contracts/=lib/seadrop/lib/openzeppelin-contracts/contracts/
+solmate/=lib/seadrop/lib/solmate/src/
+ERC721A/=lib/seadrop/lib/ERC721A/contracts/

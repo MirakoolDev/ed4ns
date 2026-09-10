@@ -9,7 +9,7 @@ describe("ed4ns", function () {
   const ARTWORK_URI = "https://arweave.net/7voe7GOK5tdxnBWZRe0Oz4pOp3nmy3MBpNBrArm9sU8";
 
   // ── Fixtures ───────────────────────────────────────────────────────────────
-  let contract;
+  let contract, factory;
   let artist, minters;
   let mintOpenTime, mintCloseTime;
 
@@ -21,15 +21,28 @@ describe("ed4ns", function () {
     mintOpenTime = now - 60;          // Open 1 minute ago
     mintCloseTime = now + 24 * 60 * 60; // Closes in 24 hours
 
-    const ed4nsFactory = await ethers.getContractFactory("ed4ns");
-    contract = await ed4nsFactory.deploy(
-      artist.address,
-      MINT_PRICE,
-      mintOpenTime,
-      mintCloseTime,
-      MIN_CUT_INTERVAL
-    );
-    await contract.waitForDeployment();
+    const Factory = await ethers.getContractFactory("Ed4nsFactory");
+    factory = await Factory.deploy(artist.address);
+    await factory.waitForDeployment();
+    await factory.setFeeSplits(50, 50, 0);
+
+    const tx = await factory.connect(artist).deployGame({
+      name: "ed4ns",
+      symbol: "ED4NS",
+      description: "Open Edition NFT game",
+      artworkURI: ARTWORK_URI,
+      mintPrice: MINT_PRICE,
+      mintOpenTime: mintOpenTime,
+      mintCloseTime: mintCloseTime,
+      minCutInterval: MIN_CUT_INTERVAL
+    });
+    const receipt = await tx.wait();
+
+    const log = receipt.logs.find(x => x.fragment && x.fragment.name === "GameDeployed");
+    const parsedLog = factory.interface.parseLog(log);
+    const gameAddress = parsedLog.args.game;
+
+    contract = await ethers.getContractAt("ed4ns", gameAddress);
   });
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -74,33 +87,44 @@ describe("ed4ns", function () {
     it("should reject minting if not open or already concluded", async function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const now = latestBlock.timestamp;
-      const ed4nsFactory = await ethers.getContractFactory("ed4ns");
       
-      const futureContract = await ed4nsFactory.deploy(
-        artist.address,
-        MINT_PRICE,
-        now + 100, // opens in future
-        now + 500,
-        MIN_CUT_INTERVAL
-      );
-      await futureContract.waitForDeployment();
+      const Factory = await ethers.getContractFactory("Ed4nsFactory");
+      const tempFactory = await Factory.deploy(artist.address);
+      await tempFactory.waitForDeployment();
+      await tempFactory.setFeeSplits(50, 50, 0);
+
+      const tx = await tempFactory.connect(artist).deployGame({
+        name: "ed4ns",
+        symbol: "ED4NS",
+        description: "Open Edition NFT game",
+        artworkURI: ARTWORK_URI,
+        mintPrice: MINT_PRICE,
+        mintOpenTime: now + 100, // opens in future
+        mintCloseTime: now + 500,
+        minCutInterval: MIN_CUT_INTERVAL
+      });
+      const receipt = await tx.wait();
+      const log = receipt.logs.find(x => x.fragment && x.fragment.name === "GameDeployed");
+      const parsedLog = tempFactory.interface.parseLog(log);
+      const gameAddress = parsedLog.args.game;
+      const futureContract = await ethers.getContractAt("ed4ns", gameAddress);
 
       await expect(
         futureContract.connect(minters[0]).mint(1, { value: MINT_PRICE })
-      ).to.be.revertedWith("Minting not open yet");
+      ).to.be.revertedWithCustomError(futureContract, "BadState");
 
       // Advance past close time
       await advanceTime(24 * 60 * 60 + 100);
 
       await expect(
         contract.connect(minters[0]).mint(1, { value: MINT_PRICE })
-      ).to.be.revertedWith("Minting concluded");
+      ).to.be.revertedWithCustomError(contract, "BadState");
     });
 
     it("should reject minting if payment is incorrect", async function () {
       await expect(
         contract.connect(minters[0]).mint(2, { value: MINT_PRICE })
-      ).to.be.revertedWith("Incorrect ETH sent");
+      ).to.be.revertedWithCustomError(contract, "InvalidArgs");
     });
   });
 
@@ -112,15 +136,11 @@ describe("ed4ns", function () {
       await advanceTime(24 * 60 * 60 + 100);
 
       await expect(
-        contract.connect(minters[0]).initializeGame(ARTWORK_URI)
-      ).to.be.revertedWith("Not artist");
+        contract.connect(minters[0]).initializeGame()
+      ).to.be.revertedWithCustomError(contract, "Unauthorized");
 
       await expect(
-        contract.connect(artist).initializeGame("")
-      ).to.be.revertedWith("Invalid artwork URI");
-
-      await expect(
-        contract.connect(artist).initializeGame(ARTWORK_URI)
+        contract.connect(artist).initializeGame()
       ).to.emit(contract, "GameInitialized");
 
       expect(await contract.gameInitialized()).to.be.true;
@@ -132,8 +152,8 @@ describe("ed4ns", function () {
       await advanceTime(24 * 60 * 60 + 100);
 
       await expect(
-        contract.connect(artist).initializeGame(ARTWORK_URI)
-      ).to.be.revertedWith("Not enough players");
+        contract.connect(artist).initializeGame()
+      ).to.be.revertedWithCustomError(contract, "BadState");
     });
   });
 
@@ -141,7 +161,7 @@ describe("ed4ns", function () {
     beforeEach(async function () {
       await mintN(10);
       await advanceTime(24 * 60 * 60 + 100);
-      await contract.connect(artist).initializeGame(ARTWORK_URI);
+      await contract.connect(artist).initializeGame();
     });
 
     it("should commit cut to the next block and successfully resolve via revealCut", async function () {
@@ -157,7 +177,7 @@ describe("ed4ns", function () {
       // Try to reveal immediately in the SAME block (should revert)
       await expect(
         contract.revealCut()
-      ).to.be.revertedWith("Block not mined yet");
+      ).to.be.revertedWithCustomError(contract, "BadState");
 
       // Mine the next block
       await mineBlock();
@@ -180,7 +200,7 @@ describe("ed4ns", function () {
 
       await expect(
         contract.triggerCut()
-      ).to.be.revertedWith("Cut already pending");
+      ).to.be.revertedWithCustomError(contract, "BadState");
 
       await mineBlock();
       await contract.revealCut();
@@ -188,7 +208,7 @@ describe("ed4ns", function () {
       // Attempt to trigger again immediately without waiting for cooldown
       await expect(
         contract.triggerCut()
-      ).to.be.revertedWith("Too soon");
+      ).to.be.revertedWithCustomError(contract, "BadState");
     });
 
     it("should recover gracefully if revealCut is stalled past EVM blockhash range (256 blocks)", async function () {
@@ -200,10 +220,13 @@ describe("ed4ns", function () {
         await mineBlock();
       }
 
-      // Should succeed and use fallback blockhash without reverting!
-      await expect(contract.revealCut()).to.emit(contract, "CutFulfilled");
+      // Should revert since EVM blockhash is no longer readable (past 256 blocks)
+      await expect(contract.revealCut()).to.be.revertedWithCustomError(contract, "BadState");
+      
+      // Reset pending state to recover
+      await contract.connect(artist).resetCutPending();
       expect(await contract.cutPending()).to.be.false;
-      expect(await contract.roundCount()).to.equal(1n);
+      expect(await contract.roundCount()).to.equal(0n);
     });
 
     it("should allow resetting the pending state if stalled", async function () {
@@ -212,15 +235,15 @@ describe("ed4ns", function () {
 
       // Too soon to reset
       await expect(
-        contract.connect(artist).resetVrfPending()
-      ).to.be.revertedWith("Too soon");
+        contract.connect(artist).resetCutPending()
+      ).to.be.revertedWithCustomError(contract, "BadState");
 
       // Advance 30 blocks (~6 minutes)
       for (let i = 0; i < 30; i++) {
         await mineBlock();
       }
 
-      await contract.connect(artist).resetVrfPending();
+      await contract.connect(artist).resetCutPending();
       expect(await contract.cutPending()).to.be.false;
     });
   });
@@ -229,7 +252,7 @@ describe("ed4ns", function () {
     beforeEach(async function () {
       await mintN(10);
       await advanceTime(24 * 60 * 60 + 100);
-      await contract.connect(artist).initializeGame(ARTWORK_URI);
+      await contract.connect(artist).initializeGame();
     });
 
     it("should correctly compute isTokenAlive and round status mathematically", async function () {
@@ -267,7 +290,7 @@ describe("ed4ns", function () {
     beforeEach(async function () {
       await mintN(6);
       await advanceTime(24 * 60 * 60 + 100);
-      await contract.connect(artist).initializeGame(ARTWORK_URI);
+      await contract.connect(artist).initializeGame();
     });
 
     it("should return valid base64 metadata URI and allow winners to claim", async function () {
@@ -309,7 +332,7 @@ describe("ed4ns", function () {
       // Duplicate claims must revert
       await expect(
         contract.connect(winnerSigner).claimPrize(winnerTokenId)
-      ).to.be.revertedWith("Already claimed");
+      ).to.be.revertedWithCustomError(contract, "BadState");
     });
   });
 });
