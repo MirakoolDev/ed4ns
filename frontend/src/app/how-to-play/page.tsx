@@ -7,7 +7,7 @@ const STEPS = [
   {
     num: "01",
     title: "Mint a Token",
-    desc: `During the open edition mint window, anyone can mint one or more tokens on the /mint page. Each token costs the same fixed price. 50% of every mint goes directly into the prize pool — 50% to the artist.`,
+    desc: `During the open edition mint window, anyone can mint one or more tokens on the /mint page. Each token costs the same fixed price. A portion of every mint goes directly into the prize pool, defined by the creator at launch.`,
     callout: null,
   },
   {
@@ -20,9 +20,9 @@ const STEPS = [
   {
     num: "03",
     title: "Elimination Rounds Begin",
-    desc: `Each round, exactly half of the remaining players are eliminated. The elimination is determined using on-chain pseudorandom logic derived from recent block hashes — no external oracle required. Once the cooldown period expires, anyone can trigger the next cut.`,
+    desc: `Each round, exactly half of the remaining players are eliminated. The elimination is determined cryptographically via the Dice Protocol. Once the cooldown period expires, anyone can trigger the next cut.`,
     callout:
-      "Trigger cut → commit phase. After 1 block, call Reveal Cut to finalize results. Both steps are available on the Arena page.",
+      "Click Execute Elimination on the Arena page. Within 5-15 seconds, the Dice Protocol will fulfill the request and eliminate half the players automatically.",
   },
   {
     num: "04",
@@ -46,11 +46,11 @@ const FAQ = [
   },
   {
     q: "How is the elimination random?",
-    a: "Elimination uses a two-step commit-reveal pattern over block hashes. The cutter commits in block N. The reveal is computed from blockhash(N), which is unpredictable at the time of commit. This removes the need for any external randomness oracle.",
+    a: "Elimination uses the Dice Protocol Entropy system. Triggering a cut sends an on-chain request to the Dice oracle. The oracle mathematically signs a cryptographically secure random number and sends it back to the contract, guaranteeing perfectly fair and unmanipulable eliminations.",
   },
   {
     q: "What if no one triggers a cut?",
-    a: "The game pauses until someone calls triggerCut on the Arena page. Anyone can do it once the cooldown expires — not just the artist. The game never auto-progresses.",
+    a: "The game pauses until someone calls Execute Elimination on the Arena page. Anyone can do it once the cooldown expires — not just the artist. The game never auto-progresses.",
   },
   {
     q: "What happens if I sell or transfer my token?",
