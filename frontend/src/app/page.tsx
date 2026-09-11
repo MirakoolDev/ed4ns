@@ -148,7 +148,7 @@ export function GameCard({ address, version, targetChainId }: { address: string;
           border: `1px solid ${phaseColor}`,
         }}>
           {phase}
-          {closeTime && !finished && (
+          {closeTime && (phase === "Minting" || phase === "Pending") && (
             <span style={{ marginLeft: 6, color: "var(--text-muted)" }}>
               {relativeTime(closeTime)}
             </span>
