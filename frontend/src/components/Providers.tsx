@@ -56,14 +56,22 @@ const baseRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_KEY
   ? `https://base-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
   : "https://mainnet.base.org";
 
+const robinhoodRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_KEY
+  ? `https://robinhood-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
+  : "https://rpc.mainnet.chain.robinhood.com";
+
+const robinhoodTestnetRpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_KEY
+  ? `https://robinhood-testnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
+  : "https://rpc.testnet.chain.robinhood.com";
+
 const config = getDefaultConfig({
   appName: "ed4ns",
   projectId: "43763f03b0d2bc4a5b481ad1240c5f43", 
   chains: [robinhood, robinhoodTestnet],
   transports: {
     [base.id]: http(baseRpcUrl, { batch: true }),
-    [robinhood.id]: http("https://rpc.mainnet.chain.robinhood.com", { batch: true }),
-    [robinhoodTestnet.id]: http("https://rpc.testnet.chain.robinhood.com", { batch: true }),
+    [robinhood.id]: http(robinhoodRpcUrl, { batch: true }),
+    [robinhoodTestnet.id]: http(robinhoodTestnetRpcUrl, { batch: true }),
   },
   ssr: true, 
 });
