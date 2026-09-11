@@ -260,7 +260,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
       const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
       const isAlchemySupported = chainId === 4663 || chainId === 4663 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
       
-      if (alchemyKey && userAddress && isAlchemySupported) {
+      if (alchemyKey && isAlchemySupported) {
         try {
           const res = await fetch(
             `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}&withTokenBalances=true`
