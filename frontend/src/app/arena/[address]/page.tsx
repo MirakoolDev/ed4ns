@@ -680,8 +680,14 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
         functionName: "diceProvider",
       }) as `0x${string}`;
 
+      const diceAddress = await publicClient!.readContract({
+        address: NFT_ADDRESS as `0x${string}`,
+        abi: NFT_ABI,
+        functionName: "dice",
+      }) as `0x${string}`;
+
       const fee = await publicClient!.readContract({
-        address: "0x43c8A7B1a85384cabf3D3Fd45a15C01F5b51A42D",
+        address: diceAddress,
         abi: parseAbi(["function getFeeV2(address provider, uint32 gasLimit) view returns (uint256)"]),
         functionName: "getFeeV2",
         args: [provider, 200000],
