@@ -275,7 +275,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                 const hasAlive = owner.tokenBalances.some((tb: any) => {
                   const tId = parseInt(tb.tokenId, 16);
                   const st = statusMap[tId];
-                  return st === undefined || st === "alive" || st === "winner" || st === "claimed";
+                  return st === undefined || st === "alive";
                 });
                 if (hasAlive) activeCount++;
               }
