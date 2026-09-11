@@ -254,45 +254,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
     ? (prizePool as bigint) / BigInt(expectedWinners)
     : 0n;
 
-  // Fetch unique active players
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
-      const isAlchemySupported = chainId === 4663 || chainId === 4663 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
-      
-      if (alchemyKey && isAlchemySupported) {
-        try {
-          const res = await fetch(
-            `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}&withTokenBalances=true`
-          );
-          const json = await res.json();
-          if (json.owners) {
-            let activeCount = 0;
-            for (const owner of json.owners) {
-              if (typeof owner === "string") {
-                activeCount++;
-              } else if (owner.tokenBalances) {
-                const hasAlive = owner.tokenBalances.some((tb: any) => {
-                  const tId = parseInt(tb.tokenId, 16);
-                  const st = statusMap[tId];
-                  return st === undefined || st === "alive";
-                });
-                if (hasAlive) activeCount++;
-              }
-            }
-            setActivePlayers(activeCount);
-          }
-        } catch (e) {
-          setActivePlayers(null);
-        }
-      } else {
-        setActivePlayers(null);
-      }
-    };
-    fetchPlayers();
-    const intervalId = setInterval(fetchPlayers, 60000);
-    return () => clearInterval(intervalId);
-  }, [NFT_ADDRESS, userAddress, chainId, statusMap]);
+
 
   const { data: existingArtworkURI } = useReadContract({
     address: NFT_ADDRESS,
@@ -317,6 +279,57 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
     chainId,
     query: { refetchInterval: 20000, staleTime: 15000 },
   });
+
+  const startId = Number(startTokenId || 1n);
+
+  // Fetch unique active players
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
+      const isAlchemySupported = chainId === 4663 || chainId === 4663 || chainId === 8453 || chainId === 84532 || chainId === 11155111;
+      
+      if (alchemyKey && isAlchemySupported) {
+        try {
+          const res = await fetch(
+            `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}&withTokenBalances=true`
+          );
+          const json = await res.json();
+          if (json.owners) {
+            let activeCount = 0;
+            for (const owner of json.owners) {
+              if (typeof owner === "string") {
+                activeCount++;
+              } else if (owner.tokenBalances) {
+                const hasAlive = owner.tokenBalances.some((tb: any) => {
+                  let tId = 0;
+                  try {
+                    tId = Number(BigInt(tb.tokenId));
+                  } catch (e) {
+                    tId = parseInt(tb.tokenId, 16);
+                  }
+                  const logicalId = tId - startId + 1;
+                  const st = statusMap[logicalId];
+                  return st === undefined || st === "alive";
+                });
+                if (hasAlive) activeCount++;
+              }
+            }
+            setActivePlayers(activeCount);
+          }
+        } catch (e) {
+          setActivePlayers(null);
+        }
+      } else {
+        setActivePlayers(null);
+      }
+    };
+    fetchPlayers();
+    const intervalId = setInterval(fetchPlayers, 60000);
+    return () => clearInterval(intervalId);
+  }, [NFT_ADDRESS, chainId, statusMap, startId]);
+
+  const endId = Number(endTokenId || 0n);
+  const totalCount = endId > 0 ? endId - startId + 1 : Number(totalSupply || 0);
 
   // Fetch round seeds — just 1 call per round ever played (typically 0-15 total)
   const roundSeedContracts = Array.from(
