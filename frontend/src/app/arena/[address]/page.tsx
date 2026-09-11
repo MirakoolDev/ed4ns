@@ -263,10 +263,25 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
       if (alchemyKey && userAddress && isAlchemySupported) {
         try {
           const res = await fetch(
-            `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}`
+            `${getAlchemyNftUrl(alchemyKey, chainId)}/getOwnersForContract?contractAddress=${NFT_ADDRESS}&withTokenBalances=true`
           );
           const json = await res.json();
-          if (json.owners) setActivePlayers(json.owners.length);
+          if (json.owners) {
+            let activeCount = 0;
+            for (const owner of json.owners) {
+              if (typeof owner === "string") {
+                activeCount++;
+              } else if (owner.tokenBalances) {
+                const hasAlive = owner.tokenBalances.some((tb: any) => {
+                  const tId = parseInt(tb.tokenId, 16);
+                  const st = statusMap[tId];
+                  return st === undefined || st === "alive" || st === "winner" || st === "claimed";
+                });
+                if (hasAlive) activeCount++;
+              }
+            }
+            setActivePlayers(activeCount);
+          }
         } catch (e) {
           setActivePlayers(null);
         }
@@ -277,7 +292,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
     fetchPlayers();
     const intervalId = setInterval(fetchPlayers, 60000);
     return () => clearInterval(intervalId);
-  }, [NFT_ADDRESS, userAddress, chainId]);
+  }, [NFT_ADDRESS, userAddress, chainId, statusMap]);
 
   const { data: existingArtworkURI } = useReadContract({
     address: NFT_ADDRESS,
