@@ -929,7 +929,7 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
                 GAME FINISHED
               </div>
               <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                The final 4 have split the pot
+                The final {Number(aliveCount || 4n)} will split the pot
               </div>
             </div>
           ) : (
