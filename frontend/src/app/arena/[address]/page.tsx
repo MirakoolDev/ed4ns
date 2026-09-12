@@ -366,9 +366,6 @@ export default function Page({ params, searchParams }: { params: Promise<{ addre
   const resolvedArtwork = existingArtworkURI ? artworkImageSrc(existingArtworkURI as string) : "";
 
   // Token grid reads
-  const startId = Number(startTokenId || 1n);
-  const endId = Number(endTokenId || 0n);
-  const totalCount = endId > 0 ? endId - startId + 1 : Number(totalSupply || 0);
 
   // ── Local game engine: compute all statuses from seeds ────────────────────
   // This runs in the browser with zero extra RPC calls per token.
